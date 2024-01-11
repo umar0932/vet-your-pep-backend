@@ -1,0 +1,206 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Admin {
+  email: String!
+  firstName: String!
+  idAdminUser: ID!
+  isActive: Boolean
+  lastName: String!
+  mediaUrl: String
+  password: String!
+}
+
+type AdminEmailUpdateResponse {
+  accessToken: String!
+  user: Admin!
+}
+
+type AdminLoginResponse {
+  accessToken: String!
+  user: Admin!
+}
+
+input CreateAdminUserInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+}
+
+input CreateChargeInput {
+  amount: Float!
+  customerId: String!
+  paymentMethodId: String!
+}
+
+input CreateCustomerInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+}
+
+type Customer {
+  cellPhone: String
+  email: String!
+  firstName: String!
+  id: ID!
+  isActive: Boolean
+  lastName: String!
+  mediaUrl: String
+  password: String!
+  socialProvider: SocialProvider
+  stripeCustomerId: String
+}
+
+type CustomerEmailUpdateResponse {
+  accessToken: String!
+  user: Customer!
+}
+
+input CustomerFilterInput {
+  cellPhone: String
+  email: String
+  firstName: String
+  id: ID
+  lastName: String
+}
+
+type CustomerLoginOrRegisterResponse {
+  accessToken: String!
+  user: Customer!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+input ListCustomersInputs {
+  filter: CustomerFilterInput
+  limit: Float!
+  offset: Float = 0
+}
+
+type ListCustomersResponse {
+  results: [Customer!]!
+  totalRows: Float
+}
+
+input LoginAdminInput {
+  email: String!
+  password: String!
+}
+
+input LoginCustomerInput {
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  """Customer Social Registration"""
+  continueWithSocialSite(input: RegisterOrLoginSocialInput!): CustomerLoginOrRegisterResponse!
+
+  """Create new admin user"""
+  createAdminUser(input: CreateAdminUserInput!): SuccessResponse!
+
+  """This will signup new Customers"""
+  createCustomer(input: CreateCustomerInput!): CustomerLoginOrRegisterResponse!
+
+  """Admin Login"""
+  loginAsAdmin(input: LoginAdminInput!): AdminLoginResponse!
+
+  """Customer Login"""
+  loginAsCustomer(input: LoginCustomerInput!): CustomerLoginOrRegisterResponse!
+
+  """This will save/update user profile image in DB"""
+  saveCustomerMediaUrl(fileName: String!): String!
+
+  """This will charge the Customer on test stripe"""
+  testCharge(chargeInput: CreateChargeInput!): SuccessResponse!
+
+  """Update admin data"""
+  updateAdminData(input: UpdateAdminUserInput!): String!
+
+  """Update admin email"""
+  updateAdminEmail(input: String!): AdminEmailUpdateResponse!
+
+  """This will update Admin Password"""
+  updateAdminPassword(password: String!): SuccessResponse!
+
+  """This will update Customer"""
+  updateCustomer(input: UpdateCustomerInput!): Customer!
+
+  """Update customer email"""
+  updateCustomerEmail(input: String!): CustomerEmailUpdateResponse!
+
+  """This will update Customer Password"""
+  updateCustomerPassword(password: String!): SuccessResponse!
+}
+
+type PageData {
+  count: Float!
+  limit: Int
+  offset: Int
+}
+
+type Query {
+  """Get the Customer"""
+  getCustomerData: Customer!
+
+  """Get S3 bucket Signed Url"""
+  getCustomerUploadUrl: S3SignedUrlResponse!
+
+  """The List of Customers with Pagination and filters"""
+  getCustomersAdmin(input: ListCustomersInputs!): ListCustomersResponse!
+
+  """check if email already exist"""
+  validEmailAdmin(input: String!): SuccessResponse!
+}
+
+input RegisterOrLoginSocialInput {
+  accessToken: String!
+  provider: SocialAuthProviders!
+}
+
+type S3SignedUrlResponse {
+  fileName: String!
+  signedUrl: String!
+}
+
+"""Social provider types"""
+enum SocialAuthProviders {
+  FACEBOOK
+  GOOGLE
+}
+
+type SocialProvider {
+  createdDate: DateTime!
+  customer: Customer!
+  id: ID!
+  provider: SocialAuthProviders!
+  socialId: String!
+}
+
+type SuccessResponse {
+  message: String
+  success: Boolean
+}
+
+input UpdateAdminUserInput {
+  email: String
+  firstName: String
+  lastName: String
+  mediaUrl: String
+}
+
+input UpdateCustomerInput {
+  cellPhone: String
+  firstName: String
+  isActive: Boolean
+  lastName: String
+  mediaUrl: String
+  stripeCustomerId: String
+}
