@@ -1,10 +1,17 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql'
+import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql'
 
 import { Column, Entity, Index, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Transform } from 'class-transformer'
 
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
 import { SocialProvider } from '@app/common/entities'
+
+import { UserRole } from '../customer-user.constants'
+
+registerEnumType(UserRole, {
+  name: 'UserRole',
+  description: 'The role of Users'
+})
 
 @Entity({ name: 'customer_user' })
 @Index(['email'])
@@ -49,6 +56,19 @@ export class Customer extends CustomBaseEntity {
     nullable: true
   })
   socialProvider?: SocialProvider
+
+  @Field(() => UserRole)
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.USER,
+    name: 'user_role'
+  })
+  role!: UserRole
+
+  // @ManyToMany(() => Channels, channels => channels.members)
+  // @JoinTable()
+  // channels: Channels[]
 
   @Column({ nullable: true, default: true, name: 'is_active' })
   @Field({ nullable: true })

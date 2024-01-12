@@ -40,6 +40,7 @@ import {
   CustomerLoginOrRegisterResponse,
   CustomerWithoutPasswordResponse
 } from './dto/args'
+import { UserRole } from './customer-user.constants'
 
 @Injectable()
 export class CustomerUserService {
@@ -117,6 +118,17 @@ export class CustomerUserService {
       throw new BadRequestException('Customer with the provided ID does not exist')
 
     return findCustomerById
+  }
+
+  async getModeratorById(id: string): Promise<Customer> {
+    if (!id) throw new BadRequestException('Moderator Id is invalid')
+    const findModeratorById = await this.customerRepository.findOne({
+      where: { id, role: UserRole.MODERATOR, isActive: true }
+    })
+    if (!findModeratorById)
+      throw new BadRequestException('Moderator with the provided ID does not exist')
+
+    return findModeratorById
   }
 
   async getCustomerByEmail(email: string): Promise<Customer> {
@@ -295,9 +307,27 @@ export class CustomerUserService {
     return rest
   }
 
+  async makeModerator(moderatorId: string, adminId: string): Promise<SuccessResponse> {
+    await this.adminService.getAdminById(adminId)
+
+    const moderator = await this.getCustomerById(moderatorId)
+
+    try {
+      await this.customerRepository.update(moderator.id, {
+        role: UserRole.MODERATOR,
+        updatedBy: adminId,
+        updatedDate: new Date()
+      })
+    } catch (e) {
+      throw new BadRequestException('Failed to update user role')
+    }
+    return { success: true, message: 'User role has been updated to moderator' }
+  }
+
   async updatePassword(password: string, customerId: string): Promise<SuccessResponse> {
     const customerData = await this.getCustomerById(customerId)
     if (!customerData) throw new BadRequestException('Customer with the provided ID does not exist')
+
     // const checkPwd = await isValidPassword(password)
     // if (!checkPwd) {
     //   throw new BadRequestException('Invalid username or password')
@@ -308,6 +338,7 @@ export class CustomerUserService {
 
       await this.customerRepository.update(customerData.id, {
         password: pwd,
+        updatedBy: customerId,
         updatedDate: new Date()
       })
     } catch (e) {
@@ -363,7 +394,7 @@ export class CustomerUserService {
   async getCustomerUploadUrl(): Promise<S3SignedUrlResponse> {
     const key = `user_profile_image_uploads/${uuid()}-user-profile`
     const bucketName = this.configService.get('USER_UPLOADS_BUCKET')
-    // const urlPrefix = this.configService.get('S3_MEDIA_PREFIX')
+
     const command = new PutObjectCommand({
       Bucket: bucketName,
       Key: key
