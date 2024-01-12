@@ -22,11 +22,33 @@ type AdminLoginResponse {
   user: Admin!
 }
 
+type Channels {
+  channelsAbout: String
+  channelsImage: String
+  channelsRule: String
+  channelsTitle: String!
+  channelsbackgroundImage: String
+  idChannel: ID!
+  refIdModerator: String!
+}
+
+input ChannelsFilterInput {
+  channelsTitle: String
+  search: String
+}
+
 input CreateAdminUserInput {
   email: String!
   firstName: String!
   lastName: String!
   password: String!
+}
+
+input CreateChannelsInput {
+  channelsAbout: String
+  channelsRule: String
+  channelsTitle: String!
+  refIdModerator: String!
 }
 
 input CreateChargeInput {
@@ -51,6 +73,7 @@ type Customer {
   lastName: String!
   mediaUrl: String
   password: String!
+  role: UserRole!
   socialProvider: SocialProvider
   stripeCustomerId: String
 }
@@ -77,6 +100,17 @@ type CustomerLoginOrRegisterResponse {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+input ListChannelsInputs {
+  filter: ChannelsFilterInput
+  limit: Float!
+  offset: Float = 0
+}
+
+type ListChannelsResponse {
+  results: [Channels!]!
+  totalRows: Float
+}
 
 input ListCustomersInputs {
   filter: CustomerFilterInput
@@ -106,6 +140,9 @@ type Mutation {
   """Create new admin user"""
   createAdminUser(input: CreateAdminUserInput!): SuccessResponse!
 
+  """This will create new Channels"""
+  createChannel(input: CreateChannelsInput!): SuccessResponse!
+
   """This will signup new Customers"""
   createCustomer(input: CreateCustomerInput!): CustomerLoginOrRegisterResponse!
 
@@ -114,6 +151,9 @@ type Mutation {
 
   """Customer Login"""
   loginAsCustomer(input: LoginCustomerInput!): CustomerLoginOrRegisterResponse!
+
+  """This will a customer to moderator"""
+  makeModerator(input: String!): SuccessResponse!
 
   """This will save/update user profile image in DB"""
   saveCustomerMediaUrl(fileName: String!): String!
@@ -129,6 +169,9 @@ type Mutation {
 
   """This will update Admin Password"""
   updateAdminPassword(password: String!): SuccessResponse!
+
+  """This will create new Channels"""
+  updateChannel(input: UpdateChannelsInput!): SuccessResponse!
 
   """This will update Customer"""
   updateCustomer(input: UpdateCustomerInput!): Customer!
@@ -147,6 +190,12 @@ type PageData {
 }
 
 type Query {
+  """The List of Channels with Pagination and filters"""
+  getAllChannelsWithPagination(input: ListChannelsInputs!): ListChannelsResponse!
+
+  """Get S3 bucket Signed Url"""
+  getChannelsUploadUrl: S3SignedUrlResponse!
+
   """Get the Customer"""
   getCustomerData: Customer!
 
@@ -196,6 +245,13 @@ input UpdateAdminUserInput {
   mediaUrl: String
 }
 
+input UpdateChannelsInput {
+  channelsAbout: String
+  channelsRule: String
+  channelsTitle: String!
+  idChannel: ID!
+}
+
 input UpdateCustomerInput {
   cellPhone: String
   firstName: String
@@ -203,4 +259,10 @@ input UpdateCustomerInput {
   lastName: String
   mediaUrl: String
   stripeCustomerId: String
+}
+
+"""The role of Users"""
+enum UserRole {
+  MODERATOR
+  USER
 }

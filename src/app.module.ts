@@ -10,6 +10,7 @@ import { join } from 'path'
 
 import { AdminModule } from '@app/admin'
 import { AwsS3ClientModule } from '@app/aws-s3-client'
+import { ChannelsModule } from '@app/channels'
 import { CustomerUserModule } from '@app/customer-user'
 import { PaymentModule } from '@app/payment'
 
@@ -50,6 +51,7 @@ const env = `${process.env.NODE_ENV}`
     TypeOrmModule.forRoot(dataSourceOptions),
     AdminModule,
     AwsS3ClientModule,
+    ChannelsModule,
     CustomerUserModule,
     PaymentModule
   ]

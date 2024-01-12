@@ -121,4 +121,15 @@ export class CustomerUserResolver {
   ): Promise<any> {
     return this.customerUserService.saveMediaUrl(user.userId, fileName)
   }
+
+  @Mutation(() => SuccessResponse, {
+    description: 'This will a customer to moderator'
+  })
+  @Allow()
+  async makeModerator(
+    @CurrentUser() user: JwtUserPayload,
+    @Args('input') moderatorId: string
+  ): Promise<SuccessResponse> {
+    return await this.customerUserService.makeModerator(moderatorId, user.userId)
+  }
 }

@@ -1,0 +1,43 @@
+#QUERIES
+query GetAllChannelsWithPagination($input: ListChannelsInputs!) {
+  getAllChannelsWithPagination(input: $input) {
+    totalRows
+    results {
+      channelsAbout
+      channelsImage
+      channelsRule
+      channelsTitle
+      channelsbackgroundImage
+      idChannel
+      refIdModerator
+    }
+  }
+}
+
+# {
+#     "input": {
+#         "filter": {
+#             "channelsTitle": "abc"
+#         },
+#         "limit": 10,
+#         "offset": 0
+#     }
+# }
+
+#MUTATIONS
+
+mutation CreateChannel($input: CreateChannelsInput!) {
+  createChannel(input: $input) {
+    message
+    success
+  }
+}
+
+# {
+#   "input": {
+#     "channelsAbout": "abc",
+#     "channelsRule": "abc",
+#     "channelsTitle": "abc",
+#     "refIdModerator": "56264c77-c0ea-447b-ae3c-d9cc6c8d2b0f"
+#   }
+# }
