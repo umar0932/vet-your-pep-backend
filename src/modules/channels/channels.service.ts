@@ -136,7 +136,7 @@ export class ChannelsService {
         )
       }
 
-      const [channels, total] = await queryBuilder.take(limit).skip(offset).getManyAndCount()
+      const [channels, total] = await queryBuilder.take(limit).skip(offset * limit).getManyAndCount()
 
       return [channels, total]
     } catch (error) {

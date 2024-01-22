@@ -264,7 +264,7 @@ export class CustomerUserService {
     const [customers, total] = await this.customerRepository.findAndCount({
       where: query,
       take: limit,
-      skip: offset
+      skip: offset * limit
     })
 
     return [customers, total]
