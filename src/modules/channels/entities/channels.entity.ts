@@ -4,10 +4,15 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
 
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
 
-import { ChannelsStatus } from '../channels.constants'
+import { ChannelsStatus, PaidStatusEnum } from '../channels.constants'
 
 registerEnumType(ChannelsStatus, {
   name: 'ChannelsStatus',
+  description: 'The status of channels'
+})
+
+registerEnumType(PaidStatusEnum, {
+  name: 'PaidStatusEnum',
   description: 'The status of channels'
 })
 
@@ -38,9 +43,31 @@ export class Channels extends CustomBaseEntity {
   @Field(() => String, { nullable: true })
   channelsImage?: string
 
+  @Column({ name: 'channel_price', type: 'numeric', nullable: true })
+  @Field(() => Number)
+  channelPrice?: number
+
   @Column({ length: 250, name: 'channels_background_image', nullable: true })
   @Field(() => String, { nullable: true })
-  channelsbackgroundImage?: string
+  channelsBackgroundImage?: string
+
+  @Field(() => ChannelsStatus)
+  @Column({
+    type: 'enum',
+    enum: ChannelsStatus,
+    default: ChannelsStatus.PUBLIC,
+    name: 'channel_status'
+  })
+  channelStatus!: ChannelsStatus
+
+  @Field(() => PaidStatusEnum)
+  @Column({
+    type: 'enum',
+    enum: PaidStatusEnum,
+    default: PaidStatusEnum.FREE,
+    name: 'paid_status'
+  })
+  paidStatusEnum!: PaidStatusEnum
 
   // @ManyToMany(() => Customer, customer => customer.channels)
   // @JoinTable()

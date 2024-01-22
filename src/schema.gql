@@ -23,18 +23,27 @@ type AdminLoginResponse {
 }
 
 type Channels {
+  channelPrice: Float!
+  channelStatus: ChannelsStatus!
   channelsAbout: String
+  channelsBackgroundImage: String
   channelsImage: String
   channelsRule: String
   channelsTitle: String!
-  channelsbackgroundImage: String
   idChannel: ID!
+  paidStatusEnum: PaidStatusEnum!
   refIdModerator: String!
 }
 
 input ChannelsFilterInput {
   channelsTitle: String
   search: String
+}
+
+"""The status of channels"""
+enum ChannelsStatus {
+  PRIVATE
+  PUBLIC
 }
 
 input CreateAdminUserInput {
@@ -45,10 +54,12 @@ input CreateAdminUserInput {
 }
 
 input CreateChannelsInput {
+  channelStatus: ChannelsStatus! = PUBLIC
   channelsAbout: String
   channelsRule: String
   channelsTitle: String!
   refIdModerator: String!
+  totalPrice: Int
 }
 
 input CreateChargeInput {
@@ -187,6 +198,12 @@ type PageData {
   count: Float!
   limit: Int
   offset: Int
+}
+
+"""The status of channels"""
+enum PaidStatusEnum {
+  FREE
+  PAID
 }
 
 type Query {
