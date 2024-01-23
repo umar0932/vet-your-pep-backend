@@ -11,11 +11,10 @@ import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm'
 import { JwtService } from '@nestjs/jwt'
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util'
 
-import { EntityManager, FindOptionsWhere, Repository } from 'typeorm'
+import { Brackets, EntityManager, Repository } from 'typeorm'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { Profile } from 'passport'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
-import { validate as uuidValidate } from 'uuid'
 import { uuid } from 'uuidv4'
 
 import { AdminService } from '@app/admin'
@@ -251,23 +250,38 @@ export class CustomerUserService {
     offset,
     filter
   }: ListCustomersInputs): Promise<[Customer[], number]> {
-    const { email, id, firstName, lastName, cellPhone } = filter || {}
+    const { email, search } = filter || {}
 
-    const query: FindOptionsWhere<Customer> | FindOptionsWhere<Customer>[] = {
-      ...(email ? { email } : {}),
-      ...(id && uuidValidate(id) ? { id } : {}),
-      ...(firstName ? { firstName } : {}),
-      ...(lastName ? { lastName } : {}),
-      ...(cellPhone ? { cellPhone } : {})
+    try {
+      const queryBuilder = await this.customerRepository.createQueryBuilder('customer_user')
+
+      email && queryBuilder.andWhere('customer_user.email = :email', { email })
+
+      if (search) {
+        queryBuilder.andWhere(
+          new Brackets(qb => {
+            qb.where('LOWER(customer_user.firstName) LIKE LOWER(:search)', {
+              search: `%${search}%`
+            })
+              .orWhere('LOWER(customer_user.lastName) LIKE LOWER(:search)', {
+                search: `%${search}%`
+              })
+              .orWhere('LOWER(customer_user.email) LIKE LOWER(:search)', {
+                search: `%${search}%`
+              })
+          })
+        )
+      }
+
+      const [customers, total] = await queryBuilder
+        .take(limit)
+        .skip(offset * limit)
+        .getManyAndCount()
+
+      return [customers, total]
+    } catch (error) {
+      throw new BadRequestException('Failed to find Users')
     }
-
-    const [customers, total] = await this.customerRepository.findAndCount({
-      where: query,
-      take: limit,
-      skip: offset * limit
-    })
-
-    return [customers, total]
   }
 
   async getAllCustomers(userId: string): Promise<Partial<CustomerWithoutPasswordResponse[]>> {
