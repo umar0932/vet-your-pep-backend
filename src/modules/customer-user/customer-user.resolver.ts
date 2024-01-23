@@ -66,7 +66,7 @@ export class CustomerUserResolver {
       offset,
       filter
     })
-    return { results: customers, totalRows: count }
+    return { results: customers, totalRows: count, limit, offset }
   }
 
   @Query(() => Customer, { description: 'Get the Customer' })
