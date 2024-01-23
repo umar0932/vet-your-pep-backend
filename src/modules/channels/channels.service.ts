@@ -131,7 +131,7 @@ export class ChannelsService {
       if (search) {
         queryBuilder.andWhere(
           new Brackets(qb => {
-            qb.where('LOWER(channels.channelsTitle) LIKE LOWER(:search)', { search: `${search}` })
+            qb.where('LOWER(channels.channelsTitle) LIKE LOWER(:search)', { search: `%${search}%` })
           })
         )
       }

@@ -16,4 +16,7 @@ export class CustomerFilterInput {
 
   @Field({ nullable: true })
   cellPhone?: string
+
+  @Field({ nullable: true })
+  search?: string
 }
