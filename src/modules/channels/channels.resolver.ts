@@ -55,6 +55,6 @@ export class ChannelsResolver {
       offset,
       filter
     })
-    return { results: channels, totalRows: count }
+    return { results: channels, totalRows: count, limit, offset }
   }
 }

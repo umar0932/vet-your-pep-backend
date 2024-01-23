@@ -13,4 +13,10 @@ export class ListChannelsResponse {
 
   @Field(() => Number, { nullable: true })
   totalRows?: number
+
+  @Field({ nullable: true, defaultValue: 0 })
+  offset: number
+
+  @Field({ nullable: false })
+  limit: number
 }

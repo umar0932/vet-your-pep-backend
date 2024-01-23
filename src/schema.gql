@@ -119,6 +119,8 @@ input ListChannelsInputs {
 }
 
 type ListChannelsResponse {
+  limit: Float!
+  offset: Float
   results: [Channels!]!
   totalRows: Float
 }
@@ -130,6 +132,8 @@ input ListCustomersInputs {
 }
 
 type ListCustomersResponse {
+  limit: Float!
+  offset: Float
   results: [Customer!]!
   totalRows: Float
 }
