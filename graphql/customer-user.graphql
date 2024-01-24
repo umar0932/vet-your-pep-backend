@@ -1,0 +1,193 @@
+#QUERIES
+
+query getCustomersAdmin($input: ListCustomersInputs!) {
+  getCustomersAdmin(input: $input) {
+    totalRows
+    results {
+      cellPhone
+      email
+      firstName
+      id
+      isActive
+      lastName
+      mediaUrl
+      stripeCustomerId
+    }
+  }
+}
+
+# {
+#     "input": {
+#         "filter": {
+#             "email": "xyz01@gmail.com"
+#         },
+#         "limit": 10,
+#         "offset": 0
+#     }
+# }
+
+query getCustomerData {
+  getCustomerData {
+    cellPhone
+    email
+    firstName
+    id
+    isActive
+    lastName
+    mediaUrl
+    password
+    stripeCustomerId
+  }
+}
+
+query getCustomerData {
+  getCustomerUploadUrl {
+    fileName
+    signedUrl
+  }
+}
+
+#MUTATIONS
+
+mutation loginAsCustomer($input: LoginCustomerInput!) {
+  loginAsCustomer(input: $input) {
+    accessToken
+    user {
+      cellPhone
+      email
+      firstName
+      id
+      isActive
+      lastName
+      mediaUrl
+      stripeCustomerId
+    }
+  }
+}
+
+# {
+#   "input": {
+#     "email": "xyz01@gmail.com",
+#     "password": "12345678"
+#   }
+# }
+
+mutation createCustomer($input: CreateCustomerInput!) {
+  createCustomer(input: $input) {
+    accessToken
+    user {
+      cellPhone
+      email
+      firstName
+      id
+      isActive
+      lastName
+      mediaUrl
+      stripeCustomerId
+    }
+  }
+}
+
+# {
+#   "input": {
+#     "email": "xyz01@gmail.com",
+#     "password": "12345678",
+#     "firstName": "xyz",
+#     "lastName": "xyz"
+#   }
+# }
+
+mutation updateCustomer($input: UpdateCustomerInput!) {
+  updateCustomer(input: $input) {
+    cellPhone
+    email
+    firstName
+    id
+    isActive
+    lastName
+    mediaUrl
+    socialProvider {
+      createdDate
+      id
+      provider
+      socialId
+    }
+    stripeCustomerId
+  }
+}
+
+# {
+#     "input": {
+#         "mediaUrl": "user_profile_image_uploads/aa3aeb97-0cdb-494f-aaec-535829613b97-user-profile",
+#         "cellPhone": "+924588576955"
+#     }
+# }
+
+mutation updateCustomerPassword($input: String!) {
+  updateCustomerPassword(password: $input) {
+    success
+    message
+  }
+}
+
+# {
+#   "input": "12345679"
+# }
+
+mutation updateCustomerEmail($input: String!) {
+  updateCustomerEmail(input: $input) {
+    accessToken
+    user {
+      cellPhone
+      email
+      firstName
+      id
+      isActive
+      lastName
+      mediaUrl
+      password
+      stripeCustomerId
+    }
+  }
+}
+
+# {
+#   "input": "xyz04@gmail.com"
+# }
+
+mutation continueWithSocialSite($input: RegisterOrLoginSocialInput!) {
+  continueWithSocialSite(input: $input) {
+    accessToken
+    user {
+      cellPhone
+      email
+      firstName
+      id
+      isActive
+      lastName
+      mediaUrl
+      stripeCustomerId
+    }
+  }
+}
+
+# {
+#     "input": {
+#         "accessToken": "ya29.a0AfB_byAk1AwCT2GyhSe4VBEa3yw-blzZxwvFUCPfsBexZiizNwSlC3KjRZIXGD8inau0ZEPHUgDv_9k7oCbWheZ9fD38sfyfAsroSjW_9eKVY9tn7-wYVIOP2jpiWU2qsGIw4ZnX0gpwTK9S9MkbFDG1Pfx2ihBcY78aCgYKAQsSARMSFQHGX2MiWYRQwC1oc_pesGFzrCvPzw0170",
+#         "provider": "GOOGLE"
+#     }
+# }
+
+mutation SaveCustomerMediaUrl {
+  saveCustomerMediaUrl(
+    fileName: "user_profile_image_uploads/37a268af-4575-4574-b0b5-00510d4b7d30-user-profile"
+  )
+}
+
+mutation MakeModerator {
+  makeModerator(input: "56264c77-c0ea-447b-ae3c-d9cc6c8d2b0f") {
+    message
+    success
+  }
+}
+
