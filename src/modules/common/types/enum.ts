@@ -4,6 +4,5 @@ export enum JWT_STRATEGY_NAME {
 }
 
 export enum SocialProviderTypes {
-  GOOGLE = 'google',
-  FACEBOOK = 'facebook'
+  GOOGLE = 'google'
 }
