@@ -243,7 +243,6 @@ type S3SignedUrlResponse {
 
 """Social provider types"""
 enum SocialAuthProviders {
-  FACEBOOK
   GOOGLE
 }
 
