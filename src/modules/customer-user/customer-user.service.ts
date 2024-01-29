@@ -273,10 +273,7 @@ export class CustomerUserService {
         )
       }
 
-      const [customers, total] = await queryBuilder
-        .take(limit)
-        .skip(offset * limit)
-        .getManyAndCount()
+      const [customers, total] = await queryBuilder.take(limit).skip(offset).getManyAndCount()
 
       return [customers, total]
     } catch (error) {
