@@ -33,7 +33,7 @@ import { SocialProvider } from '@app/common/entities'
 import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
 import { CreateCustomerInput, ListCustomersInputs, LoginCustomerInput } from './dto/inputs'
-import { Customer } from './entities/customer.entity'
+import { Customer, CustomerFollower } from './entities'
 import {
   CustomerEmailUpdateResponse,
   CustomerLoginOrRegisterResponse,
@@ -48,6 +48,8 @@ export class CustomerUserService {
     private configService: ConfigService,
     @InjectRepository(Customer)
     private customerRepository: Repository<Customer>,
+    @InjectRepository(CustomerFollower)
+    private customerFollowerRepository: Repository<CustomerFollower>,
     @InjectEntityManager() private readonly manager: EntityManager,
     @Inject(forwardRef(() => PaymentService))
     private paymentService: PaymentService,
@@ -84,6 +86,36 @@ export class CustomerUserService {
     if (checkCustomerEmail > 1) return true
 
     return false
+  }
+
+  private async updateFollowerCounts(
+    followerId: string,
+    followingTo: Customer,
+    method: string
+  ): Promise<void> {
+    const follower = await this.getCustomerById(followerId)
+    try {
+      const { totalFollowers } = followingTo
+      const { totalFollowings } = follower
+
+      if (method === 'follow') {
+        await this.customerRepository.update(followingTo.id, {
+          totalFollowers: (totalFollowers || 0) + 1
+        })
+        await this.customerRepository.update(follower.id, {
+          totalFollowings: (totalFollowings || 0) + 1
+        })
+      } else if (method === 'unfollow') {
+        await this.customerRepository.update(followingTo.id, {
+          totalFollowers: (totalFollowers || 0) - 1
+        })
+        await this.customerRepository.update(follower.id, {
+          totalFollowings: (totalFollowings || 0) - 1
+        })
+      } else throw new BadRequestException('Error updating follower counts:')
+    } catch (error) {
+      throw new BadRequestException('Error updating follower counts:')
+    }
   }
 
   async validateCustomer(email: string, password: string): Promise<any> {
@@ -273,7 +305,12 @@ export class CustomerUserService {
         )
       }
 
-      const [customers, total] = await queryBuilder.take(limit).skip(offset).getManyAndCount()
+      const [customers, total] = await queryBuilder
+        .leftJoinAndSelect('customer_user.followers', 'followers')
+        .leftJoinAndSelect('customer_user.following', 'following')
+        .take(limit)
+        .skip(offset)
+        .getManyAndCount()
 
       return [customers, total]
     } catch (error) {
@@ -429,5 +466,63 @@ export class CustomerUserService {
     const isUpdatedMedia = updateMediaUrl?.id ? true : false
     if (isUpdatedMedia) return true
     return false
+  }
+
+  async followCustomer(followerId: string, followingId: string): Promise<SuccessResponse> {
+    const following = await this.getCustomerById(followingId)
+
+    const follower = await this.customerFollowerRepository.findOne({
+      where: {
+        followers: { id: followerId },
+        following: { id: followingId }
+      }
+    })
+
+    if (follower) throw new BadRequestException('Already following.')
+
+    await this.customerFollowerRepository.save({
+      followers: { id: followerId },
+      following: following
+    })
+
+    // Update counts
+    await this.updateFollowerCounts(followerId, following, 'follow')
+
+    return { success: true, message: 'Following successfully' }
+  }
+
+  async unfollowCustomer(followerId: string, followingId: string): Promise<SuccessResponse> {
+    const following = await this.getCustomerById(followingId)
+
+    const follower = await this.customerFollowerRepository.findOne({
+      where: {
+        followers: { id: followerId },
+        following: { id: followingId }
+      }
+    })
+
+    if (!follower) throw new NotFoundException('Not following.')
+
+    await this.customerFollowerRepository.remove(follower)
+
+    // Update counts
+    await this.updateFollowerCounts(followerId, following, 'unfollow')
+    return { success: true, message: 'Unfollowed successfully' }
+  }
+
+  async getFollowers(customerId: string): Promise<Customer[]> {
+    const followers = await this.customerFollowerRepository.find({
+      where: { following: { id: customerId } },
+      relations: ['followers']
+    })
+    return followers.map(follower => follower.followers)
+  }
+
+  async getFollowingTo(customerId: string): Promise<Customer[]> {
+    const followingTo = await this.customerFollowerRepository.find({
+      where: { followers: { id: customerId } },
+      relations: ['following']
+    })
+    return followingTo.map(followTo => followTo.following)
   }
 }

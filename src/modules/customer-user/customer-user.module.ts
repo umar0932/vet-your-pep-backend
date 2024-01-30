@@ -11,14 +11,14 @@ import { PaymentModule } from '@app/payment'
 import { SocialProvider } from '@app/common/entities'
 import googleConfig from '@config/google.config'
 
-import { Customer } from './entities/customer.entity'
+import { Customer, CustomerFollower } from './entities'
 import { CustomerUserResolver } from './customer-user.resolver'
 import { CustomerUserService } from './customer-user.service'
 import { GoogleStrategy, JwtStrategy, LocalStrategy } from './strategy'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Customer, SocialProvider]),
+    TypeOrmModule.forFeature([Customer, CustomerFollower, SocialProvider]),
     ConfigModule.forFeature(googleConfig),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
