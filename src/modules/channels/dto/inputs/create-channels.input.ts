@@ -1,6 +1,6 @@
 import { InputType, Field, Int } from '@nestjs/graphql'
 
-import { IsNotEmpty, IsString, MaxLength, IsOptional, IsUUID, IsNumber } from 'class-validator'
+import { IsNotEmpty, IsString, MaxLength, IsOptional, IsUUID, IsNumber, Min } from 'class-validator'
 
 import { ChannelsStatus } from '@app/channels/channels.constants'
 
@@ -28,8 +28,9 @@ export class CreateChannelsInput {
   @MaxLength(500, { message: 'Channels About name cannot be longer than 500 characters' })
   channelsAbout?: string
 
-  @Field(() => Int, { nullable: true })
+  @Field(() => Int, { nullable: true, defaultValue: 0 })
   @IsNumber({}, { message: 'Channel Price price must be a number' })
+  @Min(0, { message: 'Minimum can not be negative' })
   @IsOptional()
   totalPrice!: number
 

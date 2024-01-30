@@ -23,7 +23,7 @@ type AdminLoginResponse {
 }
 
 type Channels {
-  channelPrice: Float!
+  channelPrice: Float
   channelStatus: ChannelsStatus!
   channelsAbout: String
   channelsBackgroundImage: String
@@ -59,7 +59,7 @@ input CreateChannelsInput {
   channelsRule: String
   channelsTitle: String!
   refIdModerator: String!
-  totalPrice: Int
+  totalPrice: Int = 0
 }
 
 input CreateChargeInput {
@@ -249,6 +249,9 @@ type Query {
   """Get the followers of the authenticated customer"""
   getFollowingTo: [Customer!]!
 
+  """The List of Customers with filters"""
+  searchCustomers(search: String!): SearchCustomersResponse!
+
   """check if email already exist"""
   validEmailAdmin(input: String!): SuccessResponse!
 }
@@ -261,6 +264,12 @@ input RegisterOrLoginSocialInput {
 type S3SignedUrlResponse {
   fileName: String!
   signedUrl: String!
+}
+
+type SearchCustomersResponse {
+  message: String
+  results: [Customer!]
+  totalCount: Float
 }
 
 """Social provider types"""

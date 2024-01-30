@@ -1,20 +1,21 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { InjectRepository } from '@nestjs/typeorm'
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm'
 
-import { Brackets, Repository } from 'typeorm'
+import { Brackets, EntityManager, Repository } from 'typeorm'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { uuid } from 'uuidv4'
 
+import { AdminService } from '@app/admin'
 import { SuccessResponse } from '@app/common'
 import { AwsS3ClientService } from '@app/aws-s3-client'
 import { CustomerUserService } from '@app/customer-user'
 import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
-import { Channels } from './entities'
+import { ChannelMember, Channels } from './entities'
+import { ChannelUserRole } from './channels.constants'
 import { CreateChannelsInput, ListChannelsInputs, UpdateChannelsInput } from './dto/inputs'
-import { AdminService } from '@app/admin'
 
 @Injectable()
 export class ChannelsService {
@@ -22,8 +23,11 @@ export class ChannelsService {
     private adminService: AdminService,
     private configService: ConfigService,
     private customerService: CustomerUserService,
+    @InjectRepository(ChannelMember)
+    private channelMemberRepository: Repository<ChannelMember>,
     @InjectRepository(Channels)
     private channelsRepository: Repository<Channels>,
+    @InjectEntityManager() private readonly manager: EntityManager,
     private s3Service: AwsS3ClientService
   ) {}
 
@@ -46,27 +50,42 @@ export class ChannelsService {
     createChannelsInput: CreateChannelsInput,
     userId: string
   ): Promise<SuccessResponse> {
-    await this.adminService.getAdminById(userId)
-    const { channelsTitle, refIdModerator, ...rest } = createChannelsInput
+    return this.manager.transaction(async transactionalManager => {
+      await this.adminService.getAdminById(userId)
+      const { channelsTitle, refIdModerator, channelStatus, totalPrice, ...rest } =
+        createChannelsInput
 
-    let moderator
-    if (refIdModerator) moderator = await this.customerService.getModeratorById(refIdModerator)
+      let moderator
+      if (refIdModerator) moderator = await this.customerService.getCustomerById(refIdModerator)
 
-    const channel = await this.getChannelsByName(channelsTitle)
-    if (channel) throw new BadRequestException('Channel Name already exists')
+      const channelExists = await this.getChannelsByName(channelsTitle)
+      if (channelExists) throw new BadRequestException('Channel Name already exists')
 
-    try {
-      await this.channelsRepository.save({
-        ...rest,
-        channelsTitle,
-        refIdModerator: moderator.id,
-        createdBy: userId
-      })
-    } catch (error) {
-      throw new BadRequestException('Failed to create channel')
-    }
+      if (channelStatus == 'PRIVATE' && totalPrice <= 1)
+        throw new BadRequestException('Channel price should be greater than 1')
 
-    return { success: true, message: 'Channel Created' }
+      try {
+        const channel = await transactionalManager.save(Channels, {
+          ...rest,
+          channelsTitle,
+          channelStatus,
+          totalPrice,
+          refIdModerator: moderator.id,
+          createdBy: userId
+        })
+
+        await transactionalManager.save(ChannelMember, {
+          channel,
+          customer: moderator,
+          roleChannel: ChannelUserRole.MODERATOR,
+          createdBy: userId
+        })
+      } catch (error) {
+        throw new BadRequestException('Failed to create channel')
+      }
+
+      return { success: true, message: 'Channel Created' }
+    })
   }
 
   async updateChannel(

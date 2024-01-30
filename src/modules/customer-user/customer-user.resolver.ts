@@ -17,7 +17,8 @@ import { Customer } from './entities'
 import {
   CustomerEmailUpdateResponse,
   CustomerLoginOrRegisterResponse,
-  ListCustomersResponse
+  ListCustomersResponse,
+  SearchCustomersResponse
 } from './dto/args'
 import { CustomerUserService } from './customer-user.service'
 import { GqlAuthGuard, SocialAuthGuard } from './guards'
@@ -169,5 +170,18 @@ export class CustomerUserResolver {
   @Allow()
   async getFollowingTo(@CurrentUser() user: JwtUserPayload): Promise<Customer[]> {
     return this.customerUserService.getFollowingTo(user.userId)
+  }
+
+  @Query(() => SearchCustomersResponse, {
+    description: 'The List of Customers with filters'
+  })
+  @Allow()
+  async searchCustomers(@Args('search') search: string): Promise<SearchCustomersResponse> {
+    if (search.length > 0) {
+      const [customers, count] = await this.customerUserService.searchCustomers(search)
+
+      return { results: customers, totalCount: count }
+    }
+    return { message: 'search should be greater then 2' }
   }
 }
