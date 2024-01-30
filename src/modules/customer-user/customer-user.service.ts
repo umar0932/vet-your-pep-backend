@@ -117,7 +117,6 @@ export class CustomerUserService {
           throw new BadRequestException('Invalid method.')
         }
       } catch (error) {
-        console.error('Error updating follower counts:', error)
         throw new BadRequestException('Error updating follower counts.')
       }
     })
@@ -379,7 +378,6 @@ export class CustomerUserService {
 
   async updatePassword(password: string, customerId: string): Promise<SuccessResponse> {
     const customerData = await this.getCustomerById(customerId)
-    if (!customerData) throw new BadRequestException('Customer with the provided ID does not exist')
 
     // const checkPwd = await isValidPassword(password)
     // if (!checkPwd) {
@@ -529,5 +527,27 @@ export class CustomerUserService {
       relations: ['following']
     })
     return followingTo.map(followTo => followTo.following)
+  }
+
+  async searchCustomers(search: string): Promise<[Customer[], number]> {
+    try {
+      const queryBuilder = await this.customerRepository.createQueryBuilder('customer_user')
+
+      if (search) {
+        queryBuilder.andWhere(
+          new Brackets(qb => {
+            qb.where('LOWER(customer_user.email) LIKE LOWER(:search)', {
+              search: `%${search}%`
+            })
+          })
+        )
+      }
+
+      const [customers, total] = await queryBuilder.getManyAndCount()
+
+      return [customers, total]
+    } catch (error) {
+      throw new BadRequestException('Failed to find Users')
+    }
   }
 }

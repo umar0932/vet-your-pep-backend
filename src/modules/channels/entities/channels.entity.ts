@@ -1,10 +1,11 @@
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql'
 
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
 
 import { ChannelsStatus, PaidStatusEnum } from '../channels.constants'
+import { ChannelMember } from './channel-member.entity'
 
 registerEnumType(ChannelsStatus, {
   name: 'ChannelsStatus',
@@ -43,8 +44,8 @@ export class Channels extends CustomBaseEntity {
   @Field(() => String, { nullable: true })
   channelsImage?: string
 
-  @Column({ name: 'channel_price', type: 'numeric', nullable: true })
-  @Field(() => Number)
+  @Column({ name: 'channel_price', type: 'numeric', nullable: true, default: 0 })
+  @Field(() => Number, { nullable: true })
   channelPrice?: number
 
   @Column({ length: 250, name: 'channels_background_image', nullable: true })
@@ -69,7 +70,6 @@ export class Channels extends CustomBaseEntity {
   })
   paidStatusEnum!: PaidStatusEnum
 
-  // @ManyToMany(() => Customer, customer => customer.channels)
-  // @JoinTable()
-  // members: Customer[]
+  @OneToMany(() => ChannelMember, channelMember => channelMember.channel)
+  members: ChannelMember[]
 }
