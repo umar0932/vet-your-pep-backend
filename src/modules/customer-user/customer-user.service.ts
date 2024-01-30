@@ -33,7 +33,7 @@ import { SocialProvider } from '@app/common/entities'
 import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
 import { CreateCustomerInput, ListCustomersInputs, LoginCustomerInput } from './dto/inputs'
-import { Customer } from './entities/customer.entity'
+import { Customer, CustomerFollower } from './entities'
 import {
   CustomerEmailUpdateResponse,
   CustomerLoginOrRegisterResponse,
@@ -48,6 +48,8 @@ export class CustomerUserService {
     private configService: ConfigService,
     @InjectRepository(Customer)
     private customerRepository: Repository<Customer>,
+    @InjectRepository(CustomerFollower)
+    private customerFollowerRepository: Repository<CustomerFollower>,
     @InjectEntityManager() private readonly manager: EntityManager,
     @Inject(forwardRef(() => PaymentService))
     private paymentService: PaymentService,
@@ -84,6 +86,40 @@ export class CustomerUserService {
     if (checkCustomerEmail > 1) return true
 
     return false
+  }
+
+  private async updateFollowerCounts(
+    followerId: string,
+    followingTo: Customer,
+    method: string
+  ): Promise<void> {
+    return this.manager.transaction(async transactionalManager => {
+      const follower = await this.getCustomerById(followerId)
+      try {
+        const { totalFollowers } = followingTo
+        const { totalFollowings } = follower
+
+        if (method === 'follow') {
+          await transactionalManager.update(Customer, followingTo.id, {
+            totalFollowers: Number(totalFollowers || 0) + 1
+          })
+          await transactionalManager.update(Customer, follower.id, {
+            totalFollowings: Number(totalFollowings || 0) + 1
+          })
+        } else if (method === 'unfollow') {
+          await transactionalManager.update(Customer, followingTo.id, {
+            totalFollowers: Math.max(Number(totalFollowers || 0) - 1, 0) // Ensure non-negative value
+          })
+          await transactionalManager.update(Customer, follower.id, {
+            totalFollowings: Math.max(Number(totalFollowings || 0) - 1, 0) // Ensure non-negative value
+          })
+        } else {
+          throw new BadRequestException('Invalid method.')
+        }
+      } catch (error) {
+        throw new BadRequestException('Error updating follower counts.')
+      }
+    })
   }
 
   async validateCustomer(email: string, password: string): Promise<any> {
@@ -274,8 +310,10 @@ export class CustomerUserService {
       }
 
       const [customers, total] = await queryBuilder
+        .leftJoinAndSelect('customer_user.followers', 'followers')
+        .leftJoinAndSelect('customer_user.following', 'following')
         .take(limit)
-        .skip(offset * limit)
+        .skip(offset)
         .getManyAndCount()
 
       return [customers, total]
@@ -340,7 +378,6 @@ export class CustomerUserService {
 
   async updatePassword(password: string, customerId: string): Promise<SuccessResponse> {
     const customerData = await this.getCustomerById(customerId)
-    if (!customerData) throw new BadRequestException('Customer with the provided ID does not exist')
 
     // const checkPwd = await isValidPassword(password)
     // if (!checkPwd) {
@@ -432,5 +469,85 @@ export class CustomerUserService {
     const isUpdatedMedia = updateMediaUrl?.id ? true : false
     if (isUpdatedMedia) return true
     return false
+  }
+
+  async followCustomer(followerId: string, followingId: string): Promise<SuccessResponse> {
+    const following = await this.getCustomerById(followingId)
+
+    const follower = await this.customerFollowerRepository.findOne({
+      where: {
+        followers: { id: followerId },
+        following: { id: followingId }
+      }
+    })
+
+    if (follower) throw new BadRequestException('Already following.')
+
+    await this.customerFollowerRepository.save({
+      followers: { id: followerId },
+      following: following
+    })
+
+    // Update counts
+    await this.updateFollowerCounts(followerId, following, 'follow')
+
+    return { success: true, message: 'Following successfully' }
+  }
+
+  async unfollowCustomer(followerId: string, followingId: string): Promise<SuccessResponse> {
+    const following = await this.getCustomerById(followingId)
+
+    const follower = await this.customerFollowerRepository.findOne({
+      where: {
+        followers: { id: followerId },
+        following: { id: followingId }
+      }
+    })
+
+    if (!follower) throw new NotFoundException('Not following.')
+
+    await this.customerFollowerRepository.remove(follower)
+
+    // Update counts
+    await this.updateFollowerCounts(followerId, following, 'unfollow')
+    return { success: true, message: 'Unfollowed successfully' }
+  }
+
+  async getFollowers(customerId: string): Promise<Customer[]> {
+    const followers = await this.customerFollowerRepository.find({
+      where: { following: { id: customerId } },
+      relations: ['followers']
+    })
+    return followers.map(follower => follower.followers)
+  }
+
+  async getFollowingTo(customerId: string): Promise<Customer[]> {
+    const followingTo = await this.customerFollowerRepository.find({
+      where: { followers: { id: customerId } },
+      relations: ['following']
+    })
+    return followingTo.map(followTo => followTo.following)
+  }
+
+  async searchCustomers(search: string): Promise<[Customer[], number]> {
+    try {
+      const queryBuilder = await this.customerRepository.createQueryBuilder('customer_user')
+
+      if (search) {
+        queryBuilder.andWhere(
+          new Brackets(qb => {
+            qb.where('LOWER(customer_user.email) LIKE LOWER(:search)', {
+              search: `%${search}%`
+            })
+          })
+        )
+      }
+
+      const [customers, total] = await queryBuilder.getManyAndCount()
+
+      return [customers, total]
+    } catch (error) {
+      throw new BadRequestException('Failed to find Users')
+    }
   }
 }

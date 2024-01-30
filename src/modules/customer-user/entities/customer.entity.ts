@@ -1,12 +1,14 @@
-import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql'
+import { ObjectType, Field, ID, registerEnumType, Int } from '@nestjs/graphql'
 
-import { Column, Entity, Index, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, Index, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Transform } from 'class-transformer'
 
+import { ChannelMember } from '@app/channels/entities'
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
 import { SocialProvider } from '@app/common/entities'
 
 import { UserRole } from '../customer-user.constants'
+import { CustomerFollower } from './customer-follower.entity'
 
 registerEnumType(UserRole, {
   name: 'UserRole',
@@ -69,6 +71,37 @@ export class Customer extends CustomBaseEntity {
   // @ManyToMany(() => Channels, channels => channels.members)
   // @JoinTable()
   // channels: Channels[]
+
+  @Field(() => [CustomerFollower], { nullable: true })
+  @OneToMany(() => CustomerFollower, (uf: CustomerFollower) => uf.followers, {
+    eager: true,
+    nullable: true,
+    cascade: true
+  })
+  followers: CustomerFollower[]
+
+  @Field(() => [CustomerFollower], { nullable: true })
+  @OneToMany(() => CustomerFollower, (uf: CustomerFollower) => uf.following, {
+    eager: true,
+    nullable: true,
+    cascade: true
+  })
+  following: CustomerFollower[]
+
+  @OneToMany(() => ChannelMember, channelMember => channelMember.customer, {
+    eager: true,
+    nullable: true,
+    cascade: true
+  })
+  channelMembers: ChannelMember[]
+
+  @Column({ type: 'numeric', name: 'following_count', default: 0 })
+  @Field(() => Int, { nullable: true })
+  totalFollowings: number
+
+  @Column({ type: 'numeric', name: 'follower_count', default: 0 })
+  @Field(() => Int, { nullable: true })
+  totalFollowers: number
 
   @Column({ nullable: true, default: true, name: 'is_active' })
   @Field({ nullable: true })
