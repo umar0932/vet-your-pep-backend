@@ -93,29 +93,34 @@ export class CustomerUserService {
     followingTo: Customer,
     method: string
   ): Promise<void> {
-    const follower = await this.getCustomerById(followerId)
-    try {
-      const { totalFollowers } = followingTo
-      const { totalFollowings } = follower
+    return this.manager.transaction(async transactionalManager => {
+      const follower = await this.getCustomerById(followerId)
+      try {
+        const { totalFollowers } = followingTo
+        const { totalFollowings } = follower
 
-      if (method === 'follow') {
-        await this.customerRepository.update(followingTo.id, {
-          totalFollowers: (totalFollowers || 0) + 1
-        })
-        await this.customerRepository.update(follower.id, {
-          totalFollowings: (totalFollowings || 0) + 1
-        })
-      } else if (method === 'unfollow') {
-        await this.customerRepository.update(followingTo.id, {
-          totalFollowers: (totalFollowers || 0) - 1
-        })
-        await this.customerRepository.update(follower.id, {
-          totalFollowings: (totalFollowings || 0) - 1
-        })
-      } else throw new BadRequestException('Error updating follower counts:')
-    } catch (error) {
-      throw new BadRequestException('Error updating follower counts:')
-    }
+        if (method === 'follow') {
+          await transactionalManager.update(Customer, followingTo.id, {
+            totalFollowers: Number(totalFollowers || 0) + 1
+          })
+          await transactionalManager.update(Customer, follower.id, {
+            totalFollowings: Number(totalFollowings || 0) + 1
+          })
+        } else if (method === 'unfollow') {
+          await transactionalManager.update(Customer, followingTo.id, {
+            totalFollowers: Math.max(Number(totalFollowers || 0) - 1, 0) // Ensure non-negative value
+          })
+          await transactionalManager.update(Customer, follower.id, {
+            totalFollowings: Math.max(Number(totalFollowings || 0) - 1, 0) // Ensure non-negative value
+          })
+        } else {
+          throw new BadRequestException('Invalid method.')
+        }
+      } catch (error) {
+        console.error('Error updating follower counts:', error)
+        throw new BadRequestException('Error updating follower counts.')
+      }
+    })
   }
 
   async validateCustomer(email: string, password: string): Promise<any> {
