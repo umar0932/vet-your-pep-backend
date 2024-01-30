@@ -79,6 +79,8 @@ type Customer {
   cellPhone: String
   email: String!
   firstName: String!
+  followers: [CustomerFollower!]
+  following: [CustomerFollower!]
   id: ID!
   isActive: Boolean
   lastName: String!
@@ -87,6 +89,8 @@ type Customer {
   role: UserRole!
   socialProvider: SocialProvider
   stripeCustomerId: String
+  totalFollowers: Int
+  totalFollowings: Int
 }
 
 type CustomerEmailUpdateResponse {
@@ -101,6 +105,12 @@ input CustomerFilterInput {
   id: ID
   lastName: String
   search: String
+}
+
+type CustomerFollower {
+  followers: Customer
+  following: Customer
+  id: Int!
 }
 
 type CustomerLoginOrRegisterResponse {
@@ -162,6 +172,9 @@ type Mutation {
   """This will signup new Customers"""
   createCustomer(input: CreateCustomerInput!): CustomerLoginOrRegisterResponse!
 
+  """This will follow a customer"""
+  followCustomer(customerId: String!): SuccessResponse!
+
   """Admin Login"""
   loginAsAdmin(input: LoginAdminInput!): AdminLoginResponse!
 
@@ -176,6 +189,9 @@ type Mutation {
 
   """This will charge the Customer on test stripe"""
   testCharge(chargeInput: CreateChargeInput!): SuccessResponse!
+
+  """This will unfollow a customer"""
+  unfollowCustomer(customerId: String!): SuccessResponse!
 
   """Update admin data"""
   updateAdminData(input: UpdateAdminUserInput!): String!
@@ -226,6 +242,12 @@ type Query {
 
   """The List of Customers with Pagination and filters"""
   getCustomersAdmin(input: ListCustomersInputs!): ListCustomersResponse!
+
+  """Get the followers of the authenticated customer"""
+  getFollowers: [Customer!]!
+
+  """Get the followers of the authenticated customer"""
+  getFollowingTo: [Customer!]!
 
   """check if email already exist"""
   validEmailAdmin(input: String!): SuccessResponse!

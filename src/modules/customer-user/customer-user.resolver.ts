@@ -13,7 +13,7 @@ import {
   RegisterOrLoginSocialInput,
   UpdateCustomerInput
 } from './dto/inputs'
-import { Customer } from './entities/customer.entity'
+import { Customer } from './entities'
 import {
   CustomerEmailUpdateResponse,
   CustomerLoginOrRegisterResponse,
@@ -131,5 +131,43 @@ export class CustomerUserResolver {
     @Args('input') moderatorId: string
   ): Promise<SuccessResponse> {
     return await this.customerUserService.makeModerator(moderatorId, user.userId)
+  }
+
+  @Mutation(() => SuccessResponse, {
+    description: 'This will follow a customer'
+  })
+  @Allow()
+  async followCustomer(
+    @Args('customerId') customerId: string,
+    @CurrentUser() user: JwtUserPayload
+  ): Promise<SuccessResponse> {
+    return this.customerUserService.followCustomer(user.userId, customerId)
+  }
+
+  @Mutation(() => SuccessResponse, {
+    description: 'This will unfollow a customer'
+  })
+  @Allow()
+  async unfollowCustomer(
+    @Args('customerId') customerId: string,
+    @CurrentUser() user: JwtUserPayload
+  ): Promise<SuccessResponse> {
+    return this.customerUserService.unfollowCustomer(user.userId, customerId)
+  }
+
+  @Query(() => [Customer], {
+    description: 'Get the followers of the authenticated customer'
+  })
+  @Allow()
+  async getFollowers(@CurrentUser() user: JwtUserPayload): Promise<Customer[]> {
+    return this.customerUserService.getFollowers(user.userId)
+  }
+
+  @Query(() => [Customer], {
+    description: 'Get the followers of the authenticated customer'
+  })
+  @Allow()
+  async getFollowingTo(@CurrentUser() user: JwtUserPayload): Promise<Customer[]> {
+    return this.customerUserService.getFollowingTo(user.userId)
   }
 }
