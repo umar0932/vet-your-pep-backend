@@ -63,7 +63,7 @@ input CreateChannelsInput {
 }
 
 input CreateChargeInput {
-  amount: Float!
+  amount: Int!
   customerId: String!
   paymentMethodId: String!
 }
@@ -216,7 +216,7 @@ type Mutation {
 }
 
 type PageData {
-  count: Float!
+  count: Int!
   limit: Int
   offset: Int
 }

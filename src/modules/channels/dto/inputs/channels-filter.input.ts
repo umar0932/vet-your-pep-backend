@@ -2,9 +2,9 @@ import { InputType, Field } from '@nestjs/graphql'
 
 @InputType()
 export class ChannelsFilterInput {
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   channelsTitle?: string
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   search?: string
 }

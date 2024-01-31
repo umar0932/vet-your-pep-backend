@@ -12,19 +12,19 @@ export class Admin extends CustomBaseEntity {
   idAdminUser!: string
 
   @Column({ length: 50, unique: true })
-  @Field()
+  @Field(() => String)
   email!: string
 
   @Column({ length: 50, name: 'first_name' })
-  @Field()
+  @Field(() => String)
   firstName!: string
 
   @Column({ length: 50, name: 'last_name' })
-  @Field()
+  @Field(() => String)
   lastName!: string
 
   @Column({ name: 'password' })
-  @Field()
+  @Field(() => String)
   password!: string
 
   @Field(() => String, { nullable: true })
@@ -32,6 +32,6 @@ export class Admin extends CustomBaseEntity {
   mediaUrl?: string
 
   @Column({ nullable: true, default: true, name: 'is_active' })
-  @Field({ nullable: true })
+  @Field(() => Boolean, { nullable: true })
   isActive?: boolean
 }
