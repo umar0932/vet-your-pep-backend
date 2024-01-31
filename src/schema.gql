@@ -22,26 +22,26 @@ type AdminLoginResponse {
   user: Admin!
 }
 
-type Channels {
+type Channel {
+  channelBackgroundImage: String
+  channelImage: String
   channelPrice: Float
-  channelStatus: ChannelsStatus!
+  channelRules: String
+  channelStatus: ChannelStatus!
+  channelTitle: String!
   channelsAbout: String
-  channelsBackgroundImage: String
-  channelsImage: String
-  channelsRule: String
-  channelsTitle: String!
   idChannel: ID!
-  paidStatusEnum: PaidStatusEnum!
+  isChannelPaid: Boolean!
   refIdModerator: String!
 }
 
-input ChannelsFilterInput {
-  channelsTitle: String
+input ChannelFilterInputs {
+  channelTitle: String
   search: String
 }
 
 """The status of channels"""
-enum ChannelsStatus {
+enum ChannelStatus {
   PRIVATE
   PUBLIC
 }
@@ -53,11 +53,11 @@ input CreateAdminUserInput {
   password: String!
 }
 
-input CreateChannelsInput {
-  channelStatus: ChannelsStatus! = PUBLIC
+input CreateChannelInput {
+  channelRules: String
+  channelStatus: ChannelStatus! = PUBLIC
+  channelTitle: String!
   channelsAbout: String
-  channelsRule: String
-  channelsTitle: String!
   refIdModerator: String!
   totalPrice: Int = 0
 }
@@ -123,8 +123,8 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-input ListChannelsInputs {
-  filter: ChannelsFilterInput
+input ListChannelsInput {
+  filter: ChannelFilterInputs
   limit: Float!
   offset: Float = 0
 }
@@ -132,7 +132,7 @@ input ListChannelsInputs {
 type ListChannelsResponse {
   limit: Float!
   offset: Float
-  results: [Channels!]!
+  results: [Channel!]!
   totalRows: Float
 }
 
@@ -166,14 +166,17 @@ type Mutation {
   """Create new admin user"""
   createAdminUser(input: CreateAdminUserInput!): SuccessResponse!
 
-  """This will create new Channels"""
-  createChannel(input: CreateChannelsInput!): SuccessResponse!
+  """This will create new Channel"""
+  createChannel(input: CreateChannelInput!): SuccessResponse!
 
   """This will signup new Customers"""
   createCustomer(input: CreateCustomerInput!): CustomerLoginOrRegisterResponse!
 
   """This will follow a customer"""
   followCustomer(customerId: String!): SuccessResponse!
+
+  """This will create new Channel"""
+  joinChannel(idChannel: String!): SuccessResponse!
 
   """Admin Login"""
   loginAsAdmin(input: LoginAdminInput!): AdminLoginResponse!
@@ -202,8 +205,8 @@ type Mutation {
   """This will update Admin Password"""
   updateAdminPassword(password: String!): SuccessResponse!
 
-  """This will create new Channels"""
-  updateChannel(input: UpdateChannelsInput!): SuccessResponse!
+  """This will create new Channel"""
+  updateChannel(input: UpdateChannelInput!): SuccessResponse!
 
   """This will update Customer"""
   updateCustomer(input: UpdateCustomerInput!): Customer!
@@ -221,15 +224,9 @@ type PageData {
   offset: Int
 }
 
-"""The status of channels"""
-enum PaidStatusEnum {
-  FREE
-  PAID
-}
-
 type Query {
-  """The List of Channels with Pagination and filters"""
-  getAllChannelsWithPagination(input: ListChannelsInputs!): ListChannelsResponse!
+  """The List of Channel with Pagination and filters"""
+  getAllChannelsWithPagination(input: ListChannelsInput!): ListChannelsResponse!
 
   """Get S3 bucket Signed Url"""
   getChannelsUploadUrl: S3SignedUrlResponse!
@@ -297,10 +294,10 @@ input UpdateAdminUserInput {
   mediaUrl: String
 }
 
-input UpdateChannelsInput {
+input UpdateChannelInput {
+  channelRules: String
+  channelTitle: String!
   channelsAbout: String
-  channelsRule: String
-  channelsTitle: String!
   idChannel: ID!
 }
 

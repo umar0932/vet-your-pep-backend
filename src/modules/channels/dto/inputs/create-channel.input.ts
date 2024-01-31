@@ -2,14 +2,14 @@ import { InputType, Field, Int } from '@nestjs/graphql'
 
 import { IsNotEmpty, IsString, MaxLength, IsOptional, IsUUID, IsNumber, Min } from 'class-validator'
 
-import { ChannelsStatus } from '@app/channels/channels.constants'
+import { ChannelStatus } from '@app/channels/channel.constants'
 
 @InputType()
-export class CreateChannelsInput {
+export class CreateChannelInput {
   @Field(() => String)
-  @IsNotEmpty({ message: 'Channels title cannot be empty' })
-  @IsString({ message: 'Channels title must be a string' })
-  channelsTitle!: string
+  @IsNotEmpty({ message: 'Channel title cannot be empty' })
+  @IsString({ message: 'Channel title must be a string' })
+  channelTitle!: string
 
   @Field(() => String)
   @IsNotEmpty({ message: 'Moderator id cannot be empty' })
@@ -17,15 +17,15 @@ export class CreateChannelsInput {
   refIdModerator!: string
 
   @Field(() => String, { nullable: true })
-  @IsString({ message: 'Channels Rule name must be a string' })
+  @IsString({ message: 'Channel Rule name must be a string' })
   @IsOptional()
-  @MaxLength(500, { message: 'Channels Rule name cannot be longer than 500 characters' })
-  channelsRule: string
+  @MaxLength(500, { message: 'Channel Rule name cannot be longer than 500 characters' })
+  channelRules: string
 
   @Field(() => String, { nullable: true })
-  @IsString({ message: 'Channels About name must be a string' })
+  @IsString({ message: 'Channel About name must be a string' })
   @IsOptional()
-  @MaxLength(500, { message: 'Channels About name cannot be longer than 500 characters' })
+  @MaxLength(500, { message: 'Channel About name cannot be longer than 500 characters' })
   channelsAbout?: string
 
   @Field(() => Int, { nullable: true, defaultValue: 0 })
@@ -34,7 +34,7 @@ export class CreateChannelsInput {
   @IsOptional()
   totalPrice!: number
 
-  @Field(() => ChannelsStatus, { defaultValue: ChannelsStatus.PUBLIC })
+  @Field(() => ChannelStatus, { defaultValue: ChannelStatus.PUBLIC })
   @IsOptional()
-  channelStatus?: ChannelsStatus
+  channelStatus?: ChannelStatus
 }

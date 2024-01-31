@@ -68,10 +68,6 @@ export class Customer extends CustomBaseEntity {
   })
   role!: UserRole
 
-  // @ManyToMany(() => Channels, channels => channels.members)
-  // @JoinTable()
-  // channels: Channels[]
-
   @Field(() => [CustomerFollower], { nullable: true })
   @OneToMany(() => CustomerFollower, (uf: CustomerFollower) => uf.followers, {
     eager: true,

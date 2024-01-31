@@ -1,4 +1,4 @@
-export * from './create-channels.input'
-export * from './channels-filter.input'
+export * from './channel-filter.input'
+export * from './create-channel.input'
 export * from './list-channels.input'
-export * from './update-channels.input'
+export * from './update-channel.input'
