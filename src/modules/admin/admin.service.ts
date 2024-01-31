@@ -26,8 +26,8 @@ export class AdminService {
     private jwtService: JwtService
   ) {}
 
-  getJwtToken = async ({ sub, email, type }: JwtDto) => {
-    const payload: JwtDto = { email, sub, type }
+  getJwtToken = async ({ sub, email, firstName, lastName, type }: JwtDto) => {
+    const payload: JwtDto = { sub, email, firstName, lastName, type }
     return await this.jwtService.sign(payload)
   }
 
@@ -54,15 +54,17 @@ export class AdminService {
     return true
   }
 
-  async login(loginAdminInput: LoginAdminInput, contextUser: Admin): Promise<AdminLoginResponse> {
+  async login(loginAdminInput: LoginAdminInput, admin: Admin): Promise<AdminLoginResponse> {
     const payload = {
+      sub: admin?.idAdminUser,
       email: loginAdminInput?.email,
-      sub: contextUser?.idAdminUser,
+      firstName: admin?.firstName,
+      lastName: admin?.lastName,
       type: JWT_STRATEGY_NAME.ADMIN
     }
     return {
       accessToken: await this.getJwtToken(payload),
-      user: contextUser
+      user: admin
     }
   }
 
@@ -168,10 +170,17 @@ export class AdminService {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...rest } = updatedAdminData
-      if (updatedAdminData.idAdminUser && updatedAdminData.email) {
+      if (
+        updatedAdminData.idAdminUser &&
+        updatedAdminData.email &&
+        updatedAdminData.firstName &&
+        updatedAdminData.lastName
+      ) {
         const payload: JwtDto = {
-          email: updatedAdminData.email,
           sub: updatedAdminData.idAdminUser,
+          email: updatedAdminData.email,
+          firstName: updatedAdminData.firstName,
+          lastName: updatedAdminData.lastName,
           type: JWT_STRATEGY_NAME.ADMIN
         }
 

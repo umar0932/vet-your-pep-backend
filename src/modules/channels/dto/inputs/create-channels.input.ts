@@ -6,7 +6,7 @@ import { ChannelsStatus } from '@app/channels/channels.constants'
 
 @InputType()
 export class CreateChannelsInput {
-  @Field()
+  @Field(() => String)
   @IsNotEmpty({ message: 'Channels title cannot be empty' })
   @IsString({ message: 'Channels title must be a string' })
   channelsTitle!: string

@@ -30,7 +30,7 @@ export class SocialProvider {
   provider: SocialProviderTypes
 
   @Column({ unique: true })
-  @Field()
+  @Field(() => String)
   socialId: string
 
   @Field(() => Customer)

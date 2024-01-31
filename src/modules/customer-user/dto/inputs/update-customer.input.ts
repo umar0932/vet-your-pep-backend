@@ -31,6 +31,6 @@ export class UpdateCustomerInput {
 
   @IsBoolean({ message: 'isActive should be a boolean value' })
   @IsOptional()
-  @Field({ nullable: true })
+  @Field(() => Boolean, { nullable: true })
   isActive?: boolean
 }
