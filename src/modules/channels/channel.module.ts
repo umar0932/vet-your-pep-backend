@@ -5,18 +5,18 @@ import { AdminModule } from '@app/admin'
 import { AwsS3ClientModule } from '@app/aws-s3-client'
 import { CustomerUserModule } from '@app/customer-user'
 
-import { ChannelMember, Channels } from './entities'
-import { ChannelsResolver } from './channels.resolver'
-import { ChannelsService } from './channels.service'
+import { ChannelMember, Channel } from './entities'
+import { ChannelResolver } from './channel.resolver'
+import { ChannelService } from './channel.service'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Channels, ChannelMember]),
+    TypeOrmModule.forFeature([Channel, ChannelMember]),
     AdminModule,
     AwsS3ClientModule,
     CustomerUserModule
   ],
-  providers: [ChannelsResolver, ChannelsService],
-  exports: [ChannelsService]
+  providers: [ChannelResolver, ChannelService],
+  exports: [ChannelService]
 })
 export class ChannelsModule {}

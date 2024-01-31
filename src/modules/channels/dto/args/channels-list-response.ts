@@ -1,15 +1,11 @@
 import { Field, ObjectType } from '@nestjs/graphql'
 
-import { Channels } from '@app/channels/entities'
-import { RelayTypes } from '@app/common'
-
-@ObjectType()
-export class ChannelsResponse extends RelayTypes<Channels>(Channels) {}
+import { Channel } from '@app/channels/entities'
 
 @ObjectType()
 export class ListChannelsResponse {
-  @Field(() => [Channels])
-  results: Channels[]
+  @Field(() => [Channel])
+  results: Channel[]
 
   @Field(() => Number, { nullable: true })
   totalRows?: number
