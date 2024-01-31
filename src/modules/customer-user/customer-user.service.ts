@@ -62,10 +62,12 @@ export class CustomerUserService {
   private async handleCustomerLogin(
     customer: Partial<Customer>
   ): Promise<CustomerLoginOrRegisterResponse> {
-    if (customer.id && customer.email) {
+    if (customer.id && customer.email && customer.firstName && customer.lastName) {
       const payload: JwtDto = {
         email: customer.email,
         sub: customer.id,
+        firstName: customer.firstName,
+        lastName: customer.lastName,
         type: JWT_STRATEGY_NAME.CUSTOMER
       }
 
@@ -100,22 +102,20 @@ export class CustomerUserService {
         const { totalFollowings } = follower
 
         if (method === 'follow') {
-          await transactionalManager.update(Customer, followingTo.id, {
+          await transactionalManager.update(Customer, follower.id, {
             totalFollowers: Number(totalFollowers || 0) + 1
           })
-          await transactionalManager.update(Customer, follower.id, {
+          await transactionalManager.update(Customer, followingTo.id, {
             totalFollowings: Number(totalFollowings || 0) + 1
           })
         } else if (method === 'unfollow') {
-          await transactionalManager.update(Customer, followingTo.id, {
-            totalFollowers: Math.max(Number(totalFollowers || 0) - 1, 0) // Ensure non-negative value
-          })
           await transactionalManager.update(Customer, follower.id, {
-            totalFollowings: Math.max(Number(totalFollowings || 0) - 1, 0) // Ensure non-negative value
+            totalFollowers: Math.max(Number(totalFollowers || 0) - 1, 0)
           })
-        } else {
-          throw new BadRequestException('Invalid method.')
-        }
+          await transactionalManager.update(Customer, followingTo.id, {
+            totalFollowings: Math.max(Number(totalFollowings || 0) - 1, 0)
+          })
+        } else throw new BadRequestException('Invalid method.')
       } catch (error) {
         throw new BadRequestException('Error updating follower counts.')
       }
@@ -212,6 +212,8 @@ export class CustomerUserService {
     const payload = {
       email: loginCustomerInput?.email,
       sub: user?.id,
+      firstName: user?.firstName,
+      lastName: user?.lastName,
       type: JWT_STRATEGY_NAME.CUSTOMER
     }
     return {
@@ -276,8 +278,8 @@ export class CustomerUserService {
     }
   }
 
-  getJwtToken = async ({ sub, email, type }: JwtDto) => {
-    const payload: JwtDto = { email, sub, type }
+  getJwtToken = async ({ sub, email, firstName, lastName, type }: JwtDto) => {
+    const payload: JwtDto = { sub, email, firstName, lastName, type }
     return this.jwtService.sign(payload)
   }
 
@@ -412,10 +414,17 @@ export class CustomerUserService {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...rest } = updatedCustomerData
-      if (updatedCustomerData.id && updatedCustomerData.email) {
+      if (
+        updatedCustomerData.id &&
+        updatedCustomerData.email &&
+        updatedCustomerData.firstName &&
+        updatedCustomerData.lastName
+      ) {
         const payload: JwtDto = {
           email: updatedCustomerData.email,
           sub: updatedCustomerData.id,
+          firstName: updatedCustomerData.firstName,
+          lastName: updatedCustomerData.lastName,
           type: JWT_STRATEGY_NAME.ADMIN
         }
 

@@ -24,19 +24,19 @@ export class Customer extends CustomBaseEntity {
   id: string
 
   @Column({ length: 50, unique: true })
-  @Field()
+  @Field(() => String)
   email!: string
 
   @Column({ length: 50, name: 'first_name' })
-  @Field()
+  @Field(() => String)
   firstName!: string
 
   @Column({ length: 50, name: 'last_name' })
-  @Field()
+  @Field(() => String)
   lastName!: string
 
   @Column({ name: 'password' })
-  @Field()
+  @Field(() => String)
   password!: string
 
   @Column({ length: 250, nullable: true })
@@ -44,7 +44,7 @@ export class Customer extends CustomBaseEntity {
   mediaUrl?: string
 
   @Column({ length: 20, name: 'cell_phone', nullable: true })
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Transform(value => value.toString())
   cellPhone?: string
 
@@ -104,6 +104,6 @@ export class Customer extends CustomBaseEntity {
   totalFollowers: number
 
   @Column({ nullable: true, default: true, name: 'is_active' })
-  @Field({ nullable: true })
+  @Field(() => Boolean, { nullable: true })
   isActive?: boolean
 }

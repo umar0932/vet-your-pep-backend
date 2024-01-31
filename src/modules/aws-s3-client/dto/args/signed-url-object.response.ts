@@ -3,11 +3,11 @@ import { IsString } from 'class-validator'
 
 @ObjectType()
 export class S3SignedUrlResponse {
-  @IsString()
-  @Field()
+  @IsString({ message: 'SignedUrl must be a string' })
+  @Field(() => String)
   signedUrl!: string
 
-  @IsString()
-  @Field()
+  @IsString({ message: 'FileName must be a string' })
+  @Field(() => String)
   fileName!: string
 }

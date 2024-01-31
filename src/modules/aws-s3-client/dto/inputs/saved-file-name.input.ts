@@ -3,7 +3,7 @@ import { IsString } from 'class-validator'
 
 @ObjectType()
 export class S3FileNameInput {
-  @IsString()
-  @Field()
+  @IsString({ message: 'Key must be a string' })
+  @Field(() => String)
   key!: string
 }
