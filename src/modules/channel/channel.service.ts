@@ -106,7 +106,8 @@ export class ChannelService {
 
   async getChannelById(id: string): Promise<Channel> {
     const findChannel = await this.channelsRepository.findOne({
-      where: { id }
+      where: { id },
+      relations: ['members.customer']
     })
     if (!findChannel) throw new BadRequestException('Channel with the provided ID does not exist')
 
