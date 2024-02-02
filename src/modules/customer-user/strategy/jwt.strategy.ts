@@ -21,6 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwtCustomer') {
       email: payload.email,
       firstName: payload.firstName,
       lastName: payload.lastName,
+      profileImage: payload?.profileImage,
       type: JWT_STRATEGY_NAME.CUSTOMER
     }
   }

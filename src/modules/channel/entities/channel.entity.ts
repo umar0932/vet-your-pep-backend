@@ -6,56 +6,60 @@ import { CustomBaseEntity } from '@app/common/entities/base.entity'
 
 import { ChannelStatus } from '../channel.constants'
 import { ChannelMember } from './channel-member.entity'
+import { Post } from '@app/post/entities'
+import { Customer } from '@app/customer-user/entities'
 
 registerEnumType(ChannelStatus, {
   name: 'ChannelStatus',
   description: 'The status of channels'
 })
 
-@Entity({ name: 'channel' })
+@Entity({ name: 'channels' })
 @ObjectType()
 export class Channel extends CustomBaseEntity {
-  // Primary keys
-
+  // Primary key
   @PrimaryGeneratedColumn('uuid')
   @Field(() => ID)
-  idChannel!: string
+  id!: string
 
   // Complusory Variables
 
-  @Column({ length: 50, name: 'channel_title', unique: true })
+  @Column({ length: 50, unique: true })
   @Field(() => String)
-  channelTitle!: string
+  title!: string
 
-  @Column({ default: false, name: 'channel_is_paid' })
+  @Column({ default: false, name: 'is_paid' })
   @Field(() => Boolean)
-  isChannelPaid!: boolean
+  isPaid!: boolean
 
-  @Column({ type: 'uuid', name: 'ref_id_moderator' })
+  @Column({ type: 'uuid', name: 'moderator_id' })
   @Field(() => String)
-  refIdModerator!: string
+  moderatorId!: string
+
+  @Field(() => Customer)
+  moderator!: Customer
 
   // Non Complusory Variables
 
-  @Column({ length: 250, name: 'channel_background_image', nullable: true })
+  @Column({ length: 250, name: 'background_image', nullable: true })
   @Field(() => String, { nullable: true })
-  channelBackgroundImage?: string
+  backgroundImage?: string
 
-  @Column({ length: 250, name: 'channel_image', nullable: true })
+  @Column({ length: 250, name: 'image', nullable: true })
   @Field(() => String, { nullable: true })
-  channelImage?: string
+  image?: string
 
-  @Column({ type: 'numeric', default: 0, name: 'channel_price', nullable: true })
+  @Column({ type: 'numeric', default: 0, name: 'price', nullable: true })
   @Field(() => Number, { nullable: true })
-  channelPrice?: number
+  price?: number
 
-  @Column({ length: 500, name: 'channel_rules', nullable: true })
+  @Column({ length: 500, name: 'rules', nullable: true })
   @Field(() => String, { nullable: true })
-  channelRules?: string
+  rules?: string
 
-  @Column({ length: 500, name: 'channels_about', nullable: true })
+  @Column({ length: 500, name: 'about', nullable: true })
   @Field(() => String, { nullable: true })
-  channelsAbout?: string
+  about?: string
 
   // Enums
 
@@ -66,14 +70,23 @@ export class Channel extends CustomBaseEntity {
     default: ChannelStatus.PUBLIC,
     name: 'channel_status'
   })
-  channelStatus!: ChannelStatus
+  status!: ChannelStatus
 
   // Relations
 
+  @Field(() => [ChannelMember], { nullable: true })
   @OneToMany(() => ChannelMember, channelMember => channelMember.channel, {
     eager: true,
     nullable: true,
     cascade: true
   })
   members: ChannelMember[]
+
+  @Field(() => [Post], { nullable: true })
+  @OneToMany(() => Post, post => post.channel, {
+    eager: true,
+    nullable: true,
+    cascade: true
+  })
+  posts: Post[]
 }

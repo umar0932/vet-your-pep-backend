@@ -3,8 +3,9 @@ import { ObjectType, Field, ID, registerEnumType, Int } from '@nestjs/graphql'
 import { Column, Entity, Index, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Transform } from 'class-transformer'
 
-import { ChannelMember } from '@app/channels/entities'
+import { ChannelMember } from '@app/channel/entities'
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
+import { Likes, Post } from '@app/post/entities'
 import { SocialProvider } from '@app/common/entities'
 
 import { UserRole } from '../customer-user.constants'
@@ -19,9 +20,12 @@ registerEnumType(UserRole, {
 @Index(['email'])
 @ObjectType()
 export class Customer extends CustomBaseEntity {
+  // Primary key
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   id: string
+
+  // Complusory Variables
 
   @Column({ length: 50, unique: true })
   @Field(() => String)
@@ -39,25 +43,34 @@ export class Customer extends CustomBaseEntity {
   @Field(() => String)
   password!: string
 
-  @Column({ length: 250, nullable: true })
-  @Field(() => String, { nullable: true })
-  mediaUrl?: string
+  @Column({ nullable: true, default: false, name: 'is_active' })
+  @Field(() => Boolean, { nullable: true })
+  isActive!: boolean
+
+  // Non Complusory Variables
 
   @Column({ length: 20, name: 'cell_phone', nullable: true })
   @Field(() => String, { nullable: true })
   @Transform(value => value.toString())
   cellPhone?: string
 
+  @Column({ length: 250, name: 'profile_image', nullable: true })
+  @Field(() => String, { nullable: true })
+  profileImage?: string
+
   @Column({ length: 200, nullable: true, name: 'stripe_customer_id', unique: true })
   @Field(() => String, { nullable: true })
   stripeCustomerId?: string
 
-  @Field(() => SocialProvider, { nullable: true })
-  @OneToOne(() => SocialProvider, socialProvider => socialProvider.customer, {
-    eager: true,
-    nullable: true
-  })
-  socialProvider?: SocialProvider
+  @Column({ type: 'numeric', name: 'following_count', default: 0 })
+  @Field(() => Int, { nullable: true })
+  totalFollowings?: number
+
+  @Column({ type: 'numeric', name: 'followers_count', default: 0 })
+  @Field(() => Int, { nullable: true })
+  totalFollowers?: number
+
+  // Enums
 
   @Field(() => UserRole)
   @Column({
@@ -67,6 +80,23 @@ export class Customer extends CustomBaseEntity {
     name: 'user_role'
   })
   role!: UserRole
+
+  // Relations
+
+  @OneToMany(() => ChannelMember, channelMember => channelMember.customer, {
+    eager: true,
+    nullable: true,
+    cascade: true
+  })
+  channelMembers: ChannelMember[]
+
+  // @Field(() => [Comment], { nullable: true })
+  // @OneToMany(() => Comment, comment => comment.customer, {
+  //   eager: true,
+  //   nullable: true,
+  //   cascade: true
+  // })
+  // comments: Comment[]
 
   @Field(() => [CustomerFollower], { nullable: true })
   @OneToMany(() => CustomerFollower, (uf: CustomerFollower) => uf.followers, {
@@ -84,22 +114,25 @@ export class Customer extends CustomBaseEntity {
   })
   following: CustomerFollower[]
 
-  @OneToMany(() => ChannelMember, channelMember => channelMember.customer, {
+  @Field(() => [Likes], { nullable: true })
+  @OneToMany(() => Likes, like => like.user, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
+  })
+  likes: Likes[]
+
+  @Field(() => [Post], { nullable: true })
+  @OneToMany(() => Post, (post: Post) => post.customer, {
     eager: true,
     nullable: true,
     cascade: true
   })
-  channelMembers: ChannelMember[]
+  posts: Post[]
 
-  @Column({ type: 'numeric', name: 'following_count', default: 0 })
-  @Field(() => Int, { nullable: true })
-  totalFollowings: number
-
-  @Column({ type: 'numeric', name: 'follower_count', default: 0 })
-  @Field(() => Int, { nullable: true })
-  totalFollowers: number
-
-  @Column({ nullable: true, default: true, name: 'is_active' })
-  @Field(() => Boolean, { nullable: true })
-  isActive?: boolean
+  @Field(() => SocialProvider, { nullable: true })
+  @OneToOne(() => SocialProvider, socialProvider => socialProvider.customer, {
+    eager: true,
+    nullable: true
+  })
+  socialProvider?: SocialProvider
 }

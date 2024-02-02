@@ -22,7 +22,7 @@ export class UpdateCustomerInput {
   @IsOptional()
   @Field(() => String, { nullable: true })
   @MaxLength(250, { message: 'MediaUrl should not exceed 50 characters' })
-  mediaUrl?: string
+  profileImage?: string
 
   @IsString({ message: 'Stripe Customer ID should be a string' })
   @IsOptional()

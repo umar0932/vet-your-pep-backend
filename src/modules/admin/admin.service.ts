@@ -26,9 +26,28 @@ export class AdminService {
     private jwtService: JwtService
   ) {}
 
-  getJwtToken = async ({ sub, email, firstName, lastName, type }: JwtDto) => {
-    const payload: JwtDto = { sub, email, firstName, lastName, type }
+  // Private Methods
+
+  // Public Methods
+
+  async getAdminById(idAdminUser: string): Promise<Admin> {
+    const findAdminById = await this.adminRepository.findOne({ where: { idAdminUser } })
+    if (!findAdminById) throw new ForbiddenException('Invalid Admin user')
+
+    return findAdminById
+  }
+
+  getJwtToken = async ({ sub, email, firstName, lastName, profileImage, type }: JwtDto) => {
+    const payload: JwtDto = { sub, email, firstName, lastName, profileImage, type }
     return await this.jwtService.sign(payload)
+  }
+
+  async isValidPwd(pwd: string): Promise<boolean> {
+    const checkPwd = isValidPassword(pwd)
+
+    if (!checkPwd) throw new BadRequestException('Invalid email or password')
+
+    return true
   }
 
   async validateAdmin(email: string, password: string): Promise<Admin> {
@@ -46,34 +65,7 @@ export class AdminService {
     return true
   }
 
-  async isValidPwd(pwd: string): Promise<boolean> {
-    const checkPwd = isValidPassword(pwd)
-
-    if (!checkPwd) throw new BadRequestException('Invalid email or password')
-
-    return true
-  }
-
-  async login(loginAdminInput: LoginAdminInput, admin: Admin): Promise<AdminLoginResponse> {
-    const payload = {
-      sub: admin?.idAdminUser,
-      email: loginAdminInput?.email,
-      firstName: admin?.firstName,
-      lastName: admin?.lastName,
-      type: JWT_STRATEGY_NAME.ADMIN
-    }
-    return {
-      accessToken: await this.getJwtToken(payload),
-      user: admin
-    }
-  }
-
-  async getAdminById(idAdminUser: string): Promise<Admin> {
-    const findAdminById = await this.adminRepository.findOne({ where: { idAdminUser } })
-    if (!findAdminById) throw new ForbiddenException('Invalid Admin user')
-
-    return findAdminById
-  }
+  // Resolver Query Methods
 
   async isEmailExist(email: string): Promise<SuccessResponse> {
     const emailExists = await this.adminRepository.count({ where: { email } })
@@ -82,7 +74,9 @@ export class AdminService {
     return { success: false, message: 'Email is invalid' }
   }
 
-  async create(data: CreateAdminUserInput, idAdminUser: string): Promise<SuccessResponse> {
+  // Resolver Mutation Methods
+
+  async createAdmin(data: CreateAdminUserInput, idAdminUser: string): Promise<SuccessResponse> {
     const { email } = data
 
     console.log(idAdminUser)
@@ -96,6 +90,7 @@ export class AdminService {
 
     await this.adminRepository.save({
       ...data,
+      isActive: true,
       password
     })
 
@@ -105,21 +100,42 @@ export class AdminService {
     }
   }
 
+  async loginAdmin(loginAdminInput: LoginAdminInput, admin: Admin): Promise<AdminLoginResponse> {
+    const payload = {
+      sub: admin?.idAdminUser,
+      email: loginAdminInput?.email,
+      firstName: admin?.firstName,
+      lastName: admin?.lastName,
+      type: JWT_STRATEGY_NAME.ADMIN
+    }
+    return {
+      accessToken: await this.getJwtToken(payload),
+      user: admin
+    }
+  }
+
+  async saveMediaUrl(fileName: string): Promise<string> {
+    const bucketName = this.configService.get('ADMIN_UPLOADS_BUCKET')
+
+    const url = `${bucketName}/${fileName}`
+    return url
+  }
+
   async updateAdminData(
     updateAdminUserInput: UpdateAdminUserInput,
     userId: string
   ): Promise<Partial<Admin>> {
-    const { mediaUrl } = updateAdminUserInput
+    const { profileImage } = updateAdminUserInput
     const adminData = await this.getAdminById(userId)
     let signedUrl
 
-    if (mediaUrl) {
-      signedUrl = await this.saveMediaUrl(mediaUrl)
+    if (profileImage) {
+      signedUrl = await this.saveMediaUrl(profileImage)
     }
     try {
       await this.adminRepository.update(adminData.idAdminUser, {
         ...updateAdminUserInput,
-        mediaUrl: signedUrl,
+        profileImage: signedUrl,
         updatedDate: new Date()
       })
     } catch (e) {
@@ -132,26 +148,6 @@ export class AdminService {
     const { password, ...rest } = updatedAdminData
 
     return rest
-  }
-
-  async updatePassword(password: string, adminId: string): Promise<SuccessResponse> {
-    const adminData = await this.getAdminById(adminId)
-    // const checkPwd = await isValidPassword(password)
-    // if (!checkPwd) {
-    //   throw new BadRequestException('Invalid username or password')
-    // }
-
-    try {
-      const pwd = await encodePassword(password)
-
-      await this.adminRepository.update(adminData.idAdminUser, {
-        password: pwd,
-        updatedDate: new Date()
-      })
-    } catch (e) {
-      throw new BadRequestException('Failed to update admin data')
-    }
-    return { success: true, message: 'Password of admin has been updated' }
   }
 
   async updateAdminEmail(userId: string, email: string): Promise<AdminEmailUpdateResponse> {
@@ -181,6 +177,7 @@ export class AdminService {
           email: updatedAdminData.email,
           firstName: updatedAdminData.firstName,
           lastName: updatedAdminData.lastName,
+          profileImage: updatedAdminData.profileImage,
           type: JWT_STRATEGY_NAME.ADMIN
         }
 
@@ -194,10 +191,23 @@ export class AdminService {
     }
   }
 
-  async saveMediaUrl(fileName: string): Promise<string> {
-    const bucketName = this.configService.get('ADMIN_UPLOADS_BUCKET')
+  async updatePassword(password: string, adminId: string): Promise<SuccessResponse> {
+    const adminData = await this.getAdminById(adminId)
+    // const checkPwd = await isValidPassword(password)
+    // if (!checkPwd) {
+    //   throw new BadRequestException('Invalid username or password')
+    // }
 
-    const url = `${bucketName}/${fileName}`
-    return url
+    try {
+      const pwd = await encodePassword(password)
+
+      await this.adminRepository.update(adminData.idAdminUser, {
+        password: pwd,
+        updatedDate: new Date()
+      })
+    } catch (e) {
+      throw new BadRequestException('Failed to update admin data')
+    }
+    return { success: true, message: 'Password of admin has been updated' }
   }
 }

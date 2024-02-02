@@ -5,5 +5,6 @@ export interface JwtDto {
   email: string
   firstName: string
   lastName: string
+  profileImage?: string
   type: JWT_STRATEGY_NAME
 }

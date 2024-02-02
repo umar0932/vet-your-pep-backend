@@ -27,5 +27,5 @@ export class UpdateAdminUserInput {
   @IsUrl()
   @IsString({ message: 'MediaUrl must be a string' })
   @IsOptional()
-  mediaUrl?: string
+  profileImage?: string
 }

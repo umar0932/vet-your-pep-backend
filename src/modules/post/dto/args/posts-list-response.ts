@@ -1,11 +1,11 @@
 import { Field, ObjectType } from '@nestjs/graphql'
 
-import { Channel } from '@app/channels/entities'
+import { Post } from '@app/post/entities'
 
 @ObjectType()
-export class ListChannelsResponse {
-  @Field(() => [Channel])
-  results: Channel[]
+export class ListPostsResponse {
+  @Field(() => [Post])
+  results: Post[]
 
   @Field(() => Number, { nullable: true })
   totalRows?: number
