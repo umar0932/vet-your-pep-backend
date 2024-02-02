@@ -22,7 +22,7 @@ mutation loginAsAdmin($input: LoginAdminInput!) {
       idAdminUser
       isActive
       lastName
-      mediaUrl
+      profileImage
     }
   }
 }
@@ -70,7 +70,7 @@ mutation updateAdminEmail($input: String!) {
       idAdminUser
       isActive
       lastName
-      mediaUrl
+      profileImage
     }
   }
 }

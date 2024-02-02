@@ -7,9 +7,12 @@ import { CustomBaseEntity } from '@app/common/entities/base.entity'
 @Entity({ name: 'admin_user' })
 @ObjectType()
 export class Admin extends CustomBaseEntity {
+  // Primary key
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   idAdminUser!: string
+
+  // Complusory Variables
 
   @Column({ length: 50, unique: true })
   @Field(() => String)
@@ -27,11 +30,13 @@ export class Admin extends CustomBaseEntity {
   @Field(() => String)
   password!: string
 
-  @Field(() => String, { nullable: true })
-  @Column({ length: 250, nullable: true })
-  mediaUrl?: string
-
-  @Column({ nullable: true, default: true, name: 'is_active' })
+  @Column({ nullable: true, default: false, name: 'is_active' })
   @Field(() => Boolean, { nullable: true })
   isActive?: boolean
+
+  // Non Complusory Variables
+
+  @Field(() => String, { nullable: true })
+  @Column({ length: 250, nullable: true })
+  profileImage?: string
 }

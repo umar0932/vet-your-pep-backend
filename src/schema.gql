@@ -8,8 +8,8 @@ type Admin {
   idAdminUser: ID!
   isActive: Boolean
   lastName: String!
-  mediaUrl: String
   password: String!
+  profileImage: String
 }
 
 type AdminEmailUpdateResponse {
@@ -23,27 +23,45 @@ type AdminLoginResponse {
 }
 
 type Channel {
-  channelBackgroundImage: String
-  channelImage: String
-  channelPrice: Float
-  channelRules: String
-  channelStatus: ChannelStatus!
-  channelTitle: String!
-  channelsAbout: String
-  idChannel: ID!
-  isChannelPaid: Boolean!
-  refIdModerator: String!
+  about: String
+  backgroundImage: String
+  id: ID!
+  image: String
+  isPaid: Boolean!
+  members: [ChannelMember!]
+  moderator: Customer!
+  moderatorId: String!
+  posts: [Post!]
+  price: Float
+  rules: String
+  status: ChannelStatus!
+  title: String!
 }
 
 input ChannelFilterInputs {
-  channelTitle: String
   search: String
+  title: String
+}
+
+type ChannelMember {
+  channel: Channel!
+  customer: Customer!
+  idChannelMember: ID!
+  paidStatus: Boolean!
+  roleChannel: ChannelUserRole!
 }
 
 """The status of channels"""
 enum ChannelStatus {
   PRIVATE
   PUBLIC
+}
+
+"""The status of ChannelUserRole"""
+enum ChannelUserRole {
+  ADMIN
+  MEMBER
+  MODERATOR
 }
 
 input CreateAdminUserInput {
@@ -54,11 +72,11 @@ input CreateAdminUserInput {
 }
 
 input CreateChannelInput {
-  channelRules: String
-  channelStatus: ChannelStatus! = PUBLIC
-  channelTitle: String!
-  channelsAbout: String
-  refIdModerator: String!
+  about: String
+  moderatorId: String!
+  rules: String
+  status: ChannelStatus! = PUBLIC
+  title: String!
   totalPrice: Int = 0
 }
 
@@ -75,6 +93,13 @@ input CreateCustomerInput {
   password: String!
 }
 
+input CreatePostInput {
+  body: String!
+  channelId: String!
+  customerId: String!
+  images: [String!]
+}
+
 type Customer {
   cellPhone: String
   email: String!
@@ -84,8 +109,10 @@ type Customer {
   id: ID!
   isActive: Boolean
   lastName: String!
-  mediaUrl: String
+  likes: [Likes!]
   password: String!
+  posts: [Post!]
+  profileImage: String
   role: UserRole!
   socialProvider: SocialProvider
   stripeCustomerId: String
@@ -122,6 +149,11 @@ type CustomerLoginOrRegisterResponse {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type Likes {
+  id: ID!
+  user: String!
+}
 
 input ListChannelsInput {
   filter: ChannelFilterInputs
@@ -172,11 +204,14 @@ type Mutation {
   """This will signup new Customers"""
   createCustomer(input: CreateCustomerInput!): CustomerLoginOrRegisterResponse!
 
+  """This will create new Post"""
+  createPost(input: CreatePostInput!): SuccessResponse!
+
   """This will follow a customer"""
   followCustomer(customerId: String!): SuccessResponse!
 
   """This will create new Channel"""
-  joinChannel(idChannel: String!): SuccessResponse!
+  joinChannel(channelId: String!): SuccessResponse!
 
   """Admin Login"""
   loginAsAdmin(input: LoginAdminInput!): AdminLoginResponse!
@@ -224,12 +259,22 @@ type PageData {
   offset: Int
 }
 
+type Post {
+  body: String!
+  channel: Channel
+  customer: Customer!
+  id: ID!
+  images: [String!]
+  likeCount: Int
+  likes: [Likes!]
+}
+
 type Query {
-  """The List of Channel with Pagination and filters"""
-  getAllChannelsWithPagination(input: ListChannelsInput!): ListChannelsResponse!
+  """This will create get a Channel"""
+  getChannelById(input: String!): Channel!
 
   """Get S3 bucket Signed Url"""
-  getChannelsUploadUrl: S3SignedUrlResponse!
+  getChannelUploadUrl: S3SignedUrlResponse!
 
   """Get the Customer"""
   getCustomerData: Customer!
@@ -244,7 +289,13 @@ type Query {
   getFollowers: [Customer!]!
 
   """Get the followers of the authenticated customer"""
-  getFollowingTo: [Customer!]!
+  getFollowing: [Customer!]!
+
+  """Get S3 bucket Signed Url"""
+  getPostUploadUrls(count: Float!): [S3SignedUrlResponse!]!
+
+  """The List of Channel with Pagination and filters"""
+  listChannels(input: ListChannelsInput!): ListChannelsResponse!
 
   """The List of Customers with filters"""
   searchCustomers(search: String!): SearchCustomersResponse!
@@ -291,14 +342,14 @@ input UpdateAdminUserInput {
   email: String
   firstName: String
   lastName: String
-  mediaUrl: String
+  profileImage: String
 }
 
 input UpdateChannelInput {
-  channelRules: String
-  channelTitle: String!
-  channelsAbout: String
-  idChannel: ID!
+  about: String
+  id: ID!
+  rules: String
+  title: String!
 }
 
 input UpdateCustomerInput {
@@ -306,7 +357,7 @@ input UpdateCustomerInput {
   firstName: String
   isActive: Boolean
   lastName: String
-  mediaUrl: String
+  profileImage: String
   stripeCustomerId: String
 }
 

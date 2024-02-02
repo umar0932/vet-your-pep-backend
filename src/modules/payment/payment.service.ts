@@ -21,6 +21,10 @@ export class PaymentService {
     @InjectStripeClient() private stripe: Stripe
   ) {}
 
+  // Private Methods
+
+  // Public Methods
+
   async createStripeCustomer(name: string, email: string) {
     try {
       return await this.stripe.customers.create({
@@ -32,30 +36,7 @@ export class PaymentService {
     }
   }
 
-  async charge(chargeInput: CreateChargeInput): Promise<SuccessResponse> {
-    try {
-      const customer = await this.customerService.getCustomerById(chargeInput.customerId)
-
-      const stripeStripeCurrency = this.configService.get<string>('stripe.currency')
-
-      if (stripeStripeCurrency === undefined)
-        throw new Error('Stripe currency is missing in the configuration')
-
-      await this.stripe.paymentIntents.create({
-        amount: _.round(chargeInput.amount * 100, 2),
-        customer: customer.stripeCustomerId,
-        payment_method: chargeInput.paymentMethodId,
-        currency: stripeStripeCurrency,
-        confirm: true,
-        off_session: true
-      })
-
-      return { success: true, message: 'Charge and Order Created' }
-    } catch (err) {
-      this.logger.error(err?.message, err, 'PaymentService')
-      throw new BadRequestException("Something went wrong while charging the customer's card.")
-    }
-  }
+  // Controller Methods
 
   async createSubscriptionSession(
     user: any, // we haven't a userDto, it's to keep it simple
@@ -82,5 +63,34 @@ export class PaymentService {
     return this.stripe.billingPortal.sessions.create({
       customer: customerId
     })
+  }
+
+  // Resolver Query Methods
+
+  // Resolver Mutation Methods
+
+  async charge(chargeInput: CreateChargeInput): Promise<SuccessResponse> {
+    try {
+      const customer = await this.customerService.getCustomerById(chargeInput.customerId)
+
+      const stripeStripeCurrency = this.configService.get<string>('stripe.currency')
+
+      if (stripeStripeCurrency === undefined)
+        throw new Error('Stripe currency is missing in the configuration')
+
+      await this.stripe.paymentIntents.create({
+        amount: _.round(chargeInput.amount * 100, 2),
+        customer: customer.stripeCustomerId,
+        payment_method: chargeInput.paymentMethodId,
+        currency: stripeStripeCurrency,
+        confirm: true,
+        off_session: true
+      })
+
+      return { success: true, message: 'Charge and Order Created' }
+    } catch (err) {
+      this.logger.error(err?.message, err, 'PaymentService')
+      throw new BadRequestException("Something went wrong while charging the customer's card.")
+    }
   }
 }
