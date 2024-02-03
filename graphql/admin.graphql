@@ -19,7 +19,7 @@ mutation loginAsAdmin($input: LoginAdminInput!) {
     user {
       email
       firstName
-      idAdminUser
+      id
       isActive
       lastName
       profileImage
@@ -67,7 +67,7 @@ mutation updateAdminEmail($input: String!) {
     user {
       email
       firstName
-      idAdminUser
+      id
       isActive
       lastName
       profileImage

@@ -19,7 +19,7 @@ export class ChannelMember extends CustomBaseEntity {
   // Primary key
   @PrimaryGeneratedColumn('uuid')
   @Field(() => ID)
-  idChannelMember!: string
+  id!: string
 
   // Complusory Variables
 

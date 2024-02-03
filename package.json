@@ -36,6 +36,7 @@
     "typeorm": "npm run build && npx typeorm -d dist/db/data-source.js",
     "migration:run:prod": "npm run typeorm -- migration:run",
     "migration:run:staging": "npm run typeorm -- migration:run",
+    "db:drop:prod": "npm run typeorm schema:drop",
     "migration:generate": "NODE_ENV=dev npm run typeorm -- migration:generate",
     "migration:run": "NODE_ENV=dev npm run typeorm -- migration:run",
     "migration:revert": "NODE_ENV=dev npm run typeorm -- migration:revert",
