@@ -10,7 +10,7 @@ export class Admin extends CustomBaseEntity {
   // Primary key
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
-  idAdminUser!: string
+  id!: string
 
   // Complusory Variables
 

@@ -30,8 +30,8 @@ export class AdminService {
 
   // Public Methods
 
-  async getAdminById(idAdminUser: string): Promise<Admin> {
-    const findAdminById = await this.adminRepository.findOne({ where: { idAdminUser } })
+  async getAdminById(id: string): Promise<Admin> {
+    const findAdminById = await this.adminRepository.findOne({ where: { id } })
     if (!findAdminById) throw new ForbiddenException('Invalid Admin user')
 
     return findAdminById
@@ -76,12 +76,12 @@ export class AdminService {
 
   // Resolver Mutation Methods
 
-  async createAdmin(data: CreateAdminUserInput, idAdminUser: string): Promise<SuccessResponse> {
+  async createAdmin(data: CreateAdminUserInput, id: string): Promise<SuccessResponse> {
     const { email } = data
 
-    console.log(idAdminUser)
+    console.log(id)
 
-    // await this.getAdminById(idAdminUser)
+    // await this.getAdminById(id)
 
     const adminUser = await this.adminRepository.findOne({ where: { email } })
     if (adminUser) throw new BadRequestException('Email already exists')
@@ -102,7 +102,7 @@ export class AdminService {
 
   async loginAdmin(loginAdminInput: LoginAdminInput, admin: Admin): Promise<AdminLoginResponse> {
     const payload = {
-      sub: admin?.idAdminUser,
+      sub: admin?.id,
       email: loginAdminInput?.email,
       firstName: admin?.firstName,
       lastName: admin?.lastName,
@@ -133,7 +133,7 @@ export class AdminService {
       signedUrl = await this.saveMediaUrl(profileImage)
     }
     try {
-      await this.adminRepository.update(adminData.idAdminUser, {
+      await this.adminRepository.update(adminData.id, {
         ...updateAdminUserInput,
         profileImage: signedUrl,
         updatedDate: new Date()
@@ -155,8 +155,8 @@ export class AdminService {
     if (emailExists) throw new BadRequestException('Email already exists')
     try {
       const adminData: Partial<Admin> = await this.getAdminById(userId)
-      if (adminData.idAdminUser) {
-        await this.adminRepository.update(adminData.idAdminUser, {
+      if (adminData.id) {
+        await this.adminRepository.update(adminData.id, {
           email,
           updatedDate: new Date()
         })
@@ -167,13 +167,13 @@ export class AdminService {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...rest } = updatedAdminData
       if (
-        updatedAdminData.idAdminUser &&
+        updatedAdminData.id &&
         updatedAdminData.email &&
         updatedAdminData.firstName &&
         updatedAdminData.lastName
       ) {
         const payload: JwtDto = {
-          sub: updatedAdminData.idAdminUser,
+          sub: updatedAdminData.id,
           email: updatedAdminData.email,
           firstName: updatedAdminData.firstName,
           lastName: updatedAdminData.lastName,
@@ -201,7 +201,7 @@ export class AdminService {
     try {
       const pwd = await encodePassword(password)
 
-      await this.adminRepository.update(adminData.idAdminUser, {
+      await this.adminRepository.update(adminData.id, {
         password: pwd,
         updatedDate: new Date()
       })
