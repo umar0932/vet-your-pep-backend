@@ -9,6 +9,10 @@ import { CreateChargeInput } from './dto/input'
 export class PaymentResolver {
   constructor(private readonly paymentService: PaymentService) {}
 
+  // Queries
+
+  // Mutations
+
   @Mutation(() => SuccessResponse, { description: 'This will charge the Customer on test stripe' })
   @Allow()
   async testCharge(@Args('chargeInput') chargeInput: CreateChargeInput): Promise<SuccessResponse> {

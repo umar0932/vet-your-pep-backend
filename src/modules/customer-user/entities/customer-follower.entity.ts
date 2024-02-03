@@ -9,9 +9,12 @@ import { Customer } from './customer.entity'
 @Entity({ name: 'customer_followers' })
 @ObjectType()
 export class CustomerFollower extends CustomBaseEntity {
+  // Primary key
   @PrimaryGeneratedColumn()
   @Field(() => Int)
   id: number
+
+  // Relations
 
   @Field(() => Customer, { nullable: true })
   @ManyToOne(() => Customer, customer => customer.followers, {

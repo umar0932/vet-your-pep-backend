@@ -5,11 +5,11 @@
 type Admin {
   email: String!
   firstName: String!
-  idAdminUser: ID!
+  id: ID!
   isActive: Boolean
   lastName: String!
-  mediaUrl: String
   password: String!
+  profileImage: String
 }
 
 type AdminEmailUpdateResponse {
@@ -22,28 +22,46 @@ type AdminLoginResponse {
   user: Admin!
 }
 
-type Channels {
-  channelPrice: Float
-  channelStatus: ChannelsStatus!
-  channelsAbout: String
-  channelsBackgroundImage: String
-  channelsImage: String
-  channelsRule: String
-  channelsTitle: String!
-  idChannel: ID!
-  paidStatusEnum: PaidStatusEnum!
-  refIdModerator: String!
+type Channel {
+  about: String
+  backgroundImage: String
+  id: ID!
+  image: String
+  isPaid: Boolean!
+  members: [ChannelMember!]
+  moderator: Customer!
+  moderatorId: String!
+  posts: [Post!]
+  price: Float
+  rules: String
+  status: ChannelStatus!
+  title: String!
 }
 
-input ChannelsFilterInput {
-  channelsTitle: String
+input ChannelFilterInputs {
   search: String
+  title: String
+}
+
+type ChannelMember {
+  channel: Channel!
+  customer: Customer!
+  id: ID!
+  paidStatus: Boolean!
+  roleChannel: ChannelUserRole!
 }
 
 """The status of channels"""
-enum ChannelsStatus {
+enum ChannelStatus {
   PRIVATE
   PUBLIC
+}
+
+"""The status of ChannelUserRole"""
+enum ChannelUserRole {
+  ADMIN
+  MEMBER
+  MODERATOR
 }
 
 input CreateAdminUserInput {
@@ -53,17 +71,17 @@ input CreateAdminUserInput {
   password: String!
 }
 
-input CreateChannelsInput {
-  channelStatus: ChannelsStatus! = PUBLIC
-  channelsAbout: String
-  channelsRule: String
-  channelsTitle: String!
-  refIdModerator: String!
+input CreateChannelInput {
+  about: String
+  moderatorId: String!
+  rules: String
+  status: ChannelStatus! = PUBLIC
+  title: String!
   totalPrice: Int = 0
 }
 
 input CreateChargeInput {
-  amount: Float!
+  amount: Int!
   customerId: String!
   paymentMethodId: String!
 }
@@ -75,6 +93,13 @@ input CreateCustomerInput {
   password: String!
 }
 
+input CreatePostInput {
+  body: String!
+  channelId: String!
+  customerId: String!
+  images: [String!]
+}
+
 type Customer {
   cellPhone: String
   email: String!
@@ -84,8 +109,10 @@ type Customer {
   id: ID!
   isActive: Boolean
   lastName: String!
-  mediaUrl: String
+  likes: [Likes!]
   password: String!
+  posts: [Post!]
+  profileImage: String
   role: UserRole!
   socialProvider: SocialProvider
   stripeCustomerId: String
@@ -123,8 +150,13 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-input ListChannelsInputs {
-  filter: ChannelsFilterInput
+type Likes {
+  id: ID!
+  user: String!
+}
+
+input ListChannelsInput {
+  filter: ChannelFilterInputs
   limit: Float!
   offset: Float = 0
 }
@@ -132,7 +164,7 @@ input ListChannelsInputs {
 type ListChannelsResponse {
   limit: Float!
   offset: Float
-  results: [Channels!]!
+  results: [Channel!]!
   totalRows: Float
 }
 
@@ -166,14 +198,20 @@ type Mutation {
   """Create new admin user"""
   createAdminUser(input: CreateAdminUserInput!): SuccessResponse!
 
-  """This will create new Channels"""
-  createChannel(input: CreateChannelsInput!): SuccessResponse!
+  """This will create new Channel"""
+  createChannel(input: CreateChannelInput!): SuccessResponse!
 
   """This will signup new Customers"""
   createCustomer(input: CreateCustomerInput!): CustomerLoginOrRegisterResponse!
 
+  """This will create new Post"""
+  createPost(input: CreatePostInput!): SuccessResponse!
+
   """This will follow a customer"""
   followCustomer(customerId: String!): SuccessResponse!
+
+  """This will create new Channel"""
+  joinChannel(channelId: String!): SuccessResponse!
 
   """Admin Login"""
   loginAsAdmin(input: LoginAdminInput!): AdminLoginResponse!
@@ -202,8 +240,8 @@ type Mutation {
   """This will update Admin Password"""
   updateAdminPassword(password: String!): SuccessResponse!
 
-  """This will create new Channels"""
-  updateChannel(input: UpdateChannelsInput!): SuccessResponse!
+  """This will create new Channel"""
+  updateChannel(input: UpdateChannelInput!): SuccessResponse!
 
   """This will update Customer"""
   updateCustomer(input: UpdateCustomerInput!): Customer!
@@ -216,23 +254,27 @@ type Mutation {
 }
 
 type PageData {
-  count: Float!
+  count: Int!
   limit: Int
   offset: Int
 }
 
-"""The status of channels"""
-enum PaidStatusEnum {
-  FREE
-  PAID
+type Post {
+  body: String!
+  channel: Channel
+  customer: Customer!
+  id: ID!
+  images: [String!]
+  likeCount: Int
+  likes: [Likes!]
 }
 
 type Query {
-  """The List of Channels with Pagination and filters"""
-  getAllChannelsWithPagination(input: ListChannelsInputs!): ListChannelsResponse!
+  """This will create get a Channel"""
+  getChannelById(input: String!): Channel!
 
   """Get S3 bucket Signed Url"""
-  getChannelsUploadUrl: S3SignedUrlResponse!
+  getChannelUploadUrl: S3SignedUrlResponse!
 
   """Get the Customer"""
   getCustomerData: Customer!
@@ -247,7 +289,13 @@ type Query {
   getFollowers: [Customer!]!
 
   """Get the followers of the authenticated customer"""
-  getFollowingTo: [Customer!]!
+  getFollowing: [Customer!]!
+
+  """Get S3 bucket Signed Url"""
+  getPostUploadUrls(count: Float!): [S3SignedUrlResponse!]!
+
+  """The List of Channel with Pagination and filters"""
+  listChannels(input: ListChannelsInput!): ListChannelsResponse!
 
   """The List of Customers with filters"""
   searchCustomers(search: String!): SearchCustomersResponse!
@@ -294,14 +342,14 @@ input UpdateAdminUserInput {
   email: String
   firstName: String
   lastName: String
-  mediaUrl: String
+  profileImage: String
 }
 
-input UpdateChannelsInput {
-  channelsAbout: String
-  channelsRule: String
-  channelsTitle: String!
-  idChannel: ID!
+input UpdateChannelInput {
+  about: String
+  id: ID!
+  rules: String
+  title: String!
 }
 
 input UpdateCustomerInput {
@@ -309,7 +357,7 @@ input UpdateCustomerInput {
   firstName: String
   isActive: Boolean
   lastName: String
-  mediaUrl: String
+  profileImage: String
   stripeCustomerId: String
 }
 

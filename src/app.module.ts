@@ -10,9 +10,10 @@ import { join } from 'path'
 
 import { AdminModule } from '@app/admin'
 import { AwsS3ClientModule } from '@app/aws-s3-client'
-import { ChannelsModule } from '@app/channels'
+import { ChannelsModule } from '@app/channel'
 import { CustomerUserModule } from '@app/customer-user'
 import { PaymentModule } from '@app/payment'
+import { PostModule } from '@app/post'
 
 import { dataSourceOptions } from 'db/data-source'
 import EnvConfig from './config/config'
@@ -53,7 +54,8 @@ const env = `${process.env.NODE_ENV}`
     AwsS3ClientModule,
     ChannelsModule,
     CustomerUserModule,
-    PaymentModule
+    PaymentModule,
+    PostModule
   ]
 })
 export class AppModule {}

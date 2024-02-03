@@ -5,8 +5,8 @@ import { Entity, Column, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 't
 import { Customer } from '@app/customer-user/entities'
 import { CustomBaseEntity } from '@app/common/entities'
 
-import { Channels } from './channels.entity'
-import { ChannelUserRole } from '../channels.constants'
+import { Channel } from './channel.entity'
+import { ChannelUserRole } from '../channel.constants'
 
 registerEnumType(ChannelUserRole, {
   name: 'ChannelUserRole',
@@ -16,21 +16,37 @@ registerEnumType(ChannelUserRole, {
 @Entity({ name: 'channel_members' })
 @ObjectType()
 export class ChannelMember extends CustomBaseEntity {
+  // Primary key
   @PrimaryGeneratedColumn('uuid')
   @Field(() => ID)
-  idChannelMember: string
+  id!: string
 
-  @Field(() => Channels)
-  @ManyToOne(() => Channels, channel => channel.members)
+  // Complusory Variables
+
+  @Column({ default: false, name: 'paid_status' })
+  @Field(() => Boolean)
+  paidStatus: boolean
+
+  // Enums
+
+  @Column({
+    type: 'enum',
+    enum: ChannelUserRole,
+    default: ChannelUserRole.MEMBER,
+    name: 'channel_role'
+  })
+  @Field(() => ChannelUserRole)
+  roleChannel: ChannelUserRole
+
+  // Relations
+
+  @Field(() => Channel)
+  @ManyToOne(() => Channel, channel => channel.members)
   @JoinColumn({ name: 'channel_id' })
-  channel: Channels
+  channel!: Channel
 
   @Field(() => Customer)
   @ManyToOne(() => Customer, customer => customer.channelMembers)
   @JoinColumn({ name: 'customer_id' })
-  customer: Customer
-
-  @Column({ type: 'enum', enum: ChannelUserRole, default: ChannelUserRole.MEMBER })
-  @Field(() => ChannelUserRole)
-  roleChannel: ChannelUserRole
+  customer!: Customer
 }

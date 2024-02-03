@@ -10,7 +10,7 @@ query getCustomersAdmin($input: ListCustomersInputs!) {
       id
       isActive
       lastName
-      mediaUrl
+      profileImage
       stripeCustomerId
     }
   }
@@ -34,7 +34,7 @@ query getCustomerData {
     id
     isActive
     lastName
-    mediaUrl
+    profileImage
     password
     stripeCustomerId
   }
@@ -59,7 +59,7 @@ mutation loginAsCustomer($input: LoginCustomerInput!) {
       id
       isActive
       lastName
-      mediaUrl
+      profileImage
       stripeCustomerId
     }
   }
@@ -82,7 +82,7 @@ mutation createCustomer($input: CreateCustomerInput!) {
       id
       isActive
       lastName
-      mediaUrl
+      profileImage
       stripeCustomerId
     }
   }
@@ -105,7 +105,7 @@ mutation updateCustomer($input: UpdateCustomerInput!) {
     id
     isActive
     lastName
-    mediaUrl
+    profileImage
     socialProvider {
       createdDate
       id
@@ -118,7 +118,7 @@ mutation updateCustomer($input: UpdateCustomerInput!) {
 
 # {
 #     "input": {
-#         "mediaUrl": "user_profile_image_uploads/aa3aeb97-0cdb-494f-aaec-535829613b97-user-profile",
+#         "profileImage": "user_profile_image_uploads/aa3aeb97-0cdb-494f-aaec-535829613b97-user-profile",
 #         "cellPhone": "+924588576955"
 #     }
 # }
@@ -144,7 +144,7 @@ mutation updateCustomerEmail($input: String!) {
       id
       isActive
       lastName
-      mediaUrl
+      profileImage
       password
       stripeCustomerId
     }
@@ -165,7 +165,7 @@ mutation continueWithSocialSite($input: RegisterOrLoginSocialInput!) {
       id
       isActive
       lastName
-      mediaUrl
+      profileImage
       stripeCustomerId
     }
   }

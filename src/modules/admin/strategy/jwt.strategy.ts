@@ -19,6 +19,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwtAdmin') {
     return {
       userId: payload.sub,
       email: payload.email,
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      profileImage: payload?.profileImage,
       type: JWT_STRATEGY_NAME.ADMIN
     }
   }
