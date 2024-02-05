@@ -33,7 +33,7 @@ export class PostService {
   // Private Methods
 
   // Public Methods
-  async getPostById(id: number): Promise<Post> {
+  async getPostById(id: string): Promise<Post> {
     const findPosts = await this.postRepository.findOne({
       where: { id }
     })

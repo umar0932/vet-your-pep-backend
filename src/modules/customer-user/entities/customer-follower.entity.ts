@@ -1,4 +1,4 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql'
+import { Field, ID, ObjectType } from '@nestjs/graphql'
 
 import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm'
 
@@ -11,7 +11,7 @@ import { Customer } from './customer.entity'
 export class CustomerFollower extends CustomBaseEntity {
   // Primary key
   @PrimaryGeneratedColumn()
-  @Field(() => Int)
+  @Field(() => ID)
   id: number
 
   // Relations

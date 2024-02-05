@@ -17,9 +17,9 @@ registerEnumType(ChannelUserRole, {
 @ObjectType()
 export class ChannelMember extends CustomBaseEntity {
   // Primary key
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   @Field(() => ID)
-  id!: string
+  id!: number
 
   // Complusory Variables
 

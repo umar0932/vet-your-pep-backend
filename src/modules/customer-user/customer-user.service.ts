@@ -434,7 +434,6 @@ export class CustomerUserService {
       following: following
     })
 
-    // Update counts
     await this.updateFollowerCounts(followerId, following, 'follow')
 
     return { success: true, message: 'Following successfully' }
