@@ -29,13 +29,13 @@ export class SocialProvider {
   @Field(() => SocialProviderTypes)
   provider: SocialProviderTypes
 
-  @Column({ unique: true })
+  @Column({ unique: true, name: 'social_id' })
   @Field(() => String)
   socialId: string
 
   @Field(() => Customer)
   @OneToOne(() => Customer, customer => customer.socialProvider, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'ref_id_customer' })
+  @JoinColumn({ name: 'customer_id' })
   customer: Customer
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP', name: 'created_at' })

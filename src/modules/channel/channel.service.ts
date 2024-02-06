@@ -33,6 +33,33 @@ export class ChannelService {
 
   // Private Methods
 
+  private async updateTotalMembersCount(
+    transactionalManager: EntityManager,
+    channel: Channel,
+    method: string,
+    userId: string
+  ): Promise<void> {
+    try {
+      if (method === 'increment') {
+        await transactionalManager.update(Channel, channel.id, {
+          totalMembers: Number(channel.totalMembers || 0) + 1,
+          updatedBy: userId,
+          updatedDate: new Date()
+        })
+      } else if (method === 'decrement') {
+        await transactionalManager.update(Channel, channel.id, {
+          totalMembers: Math.max(Number(channel.totalMembers || 0) - 1, 0),
+          updatedBy: userId,
+          updatedDate: new Date()
+        })
+      } else {
+        throw new BadRequestException('Invalid method.')
+      }
+    } catch (error) {
+      throw new BadRequestException('Error updating channel counts.')
+    }
+  }
+
   // Public Methods
 
   async checkChannelMemberByIdExist(channelId: string, userId: string): Promise<void> {
@@ -133,6 +160,46 @@ export class ChannelService {
     }
   }
 
+  async getMyChannelsWithPagination(
+    { limit, offset, filter, joined }: ListChannelsInput,
+    userId: string
+  ): Promise<[Channel[], number]> {
+    const { title, search } = filter || {}
+
+    try {
+      const queryBuilder = await this.channelsRepository.createQueryBuilder('channels')
+
+      title && (await queryBuilder.andWhere('channels.title = :title', { title }))
+
+      if (search) {
+        await queryBuilder.andWhere(
+          new Brackets(qb => {
+            qb.where('LOWER(channels.title) LIKE LOWER(:search)', { search: `%${search}%` })
+          })
+        )
+      }
+
+      await queryBuilder
+        .take(limit)
+        .skip(offset)
+        .leftJoinAndSelect('channels.members', 'channelMember')
+        .leftJoinAndSelect('channels.posts', 'post')
+        .leftJoinAndSelect('channelMember.customer', 'customer')
+
+      if (joined) {
+        await queryBuilder.where('customer.id = :userId', { userId })
+      } else {
+        await queryBuilder.andWhere('customer.id <> :userId', { userId })
+      }
+
+      const [channels, total] = await queryBuilder.getManyAndCount()
+
+      return [channels, total]
+    } catch (error) {
+      throw new BadRequestException('Failed to find Channel')
+    }
+  }
+
   // Resolver Mutation Methods
 
   async createChannel(
@@ -169,6 +236,8 @@ export class ChannelService {
           roleChannel: ChannelUserRole.MODERATOR,
           createdBy: userId
         })
+
+        await this.updateTotalMembersCount(transactionalManager, channel, 'increment', userId)
       } catch (error) {
         throw new BadRequestException('Failed to create channel')
       }
@@ -178,30 +247,32 @@ export class ChannelService {
   }
 
   async joinChannel(channelId: string, userId: string): Promise<SuccessResponse> {
-    const channel = await this.getChannelById(channelId)
-    const { status } = channel
+    return this.manager.transaction(async transactionalManager => {
+      const channel = await this.getChannelById(channelId)
+      const { status } = channel
 
-    if (status === ChannelStatus.PUBLIC) {
-      await this.checkChannelMemberByIdExist(channel.id, userId)
+      if (status === ChannelStatus.PUBLIC) {
+        await this.checkChannelMemberByIdExist(channel.id, userId)
 
-      try {
-        await this.channelMemberRepository.save({
-          channel,
-          customer: { id: userId },
-          roleChannel: ChannelUserRole.MEMBER,
-          createdBy: userId
-        })
-      } catch (error) {
-        throw new BadRequestException('Failed to join the channel.')
-      }
-    } else if (status === ChannelStatus.PRIVATE) {
-      await this.checkChannelMemberByIdExist(channel.id, userId)
-      return { success: false, message: 'Channel is private.' }
-    } else {
-      throw new BadRequestException('Cannot join a non-public channel.')
-    }
+        try {
+          await transactionalManager.save(ChannelMember, {
+            channel,
+            customer: { id: userId },
+            roleChannel: ChannelUserRole.MEMBER,
+            createdBy: userId
+          })
 
-    return { success: true, message: 'User joined the channel.' }
+          await this.updateTotalMembersCount(transactionalManager, channel, 'increment', userId)
+        } catch (error) {
+          throw new BadRequestException('Failed to join the channel.')
+        }
+      } else if (status === ChannelStatus.PRIVATE) {
+        await this.checkChannelMemberByIdExist(channel.id, userId)
+        return { success: false, message: 'Channel is private.' }
+      } else throw new BadRequestException('Cannot join a non-public channel.')
+
+      return { success: true, message: 'User joined the channel.' }
+    })
   }
 
   async updateChannel(

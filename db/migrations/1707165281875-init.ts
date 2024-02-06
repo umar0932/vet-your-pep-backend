@@ -1,18 +1,28 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 
-export class Init1706943716001 implements MigrationInterface {
-  name = 'Init1706943716001'
+export class Init1707165281875 implements MigrationInterface {
+  name = 'Init1707165281875'
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `CREATE TYPE "public"."social_provider_social_provider_enum" AS ENUM('google')`
     )
     await queryRunner.query(
-      `CREATE TABLE "social_provider" ("id" SERIAL NOT NULL, "social_provider" "public"."social_provider_social_provider_enum" NOT NULL, "socialId" character varying NOT NULL, "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "ref_id_customer" uuid, CONSTRAINT "UQ_11c163e15c0f61964953efc47eb" UNIQUE ("socialId"), CONSTRAINT "REL_9fc14f13d814ab10af08bb44e8" UNIQUE ("ref_id_customer"), CONSTRAINT "PK_27f0b9006e0c7a2779e77a68298" PRIMARY KEY ("id"))`
+      `CREATE TABLE "social_provider" (
+        "id" SERIAL NOT NULL,
+        "customer_id" uuid,
+        "social_id" character varying NOT NULL,
+        "social_provider" "public"."social_provider_social_provider_enum" NOT NULL,
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "UQ_9ce71b95d110cea015f9702adda" UNIQUE ("social_id"),
+        CONSTRAINT "REL_4fdc01924ac0a57444eb4ea4de" UNIQUE ("customer_id"),
+        CONSTRAINT "PK_27f0b9006e0c7a2779e77a68298" PRIMARY KEY ("id"))`
     )
     await queryRunner.query(
       `CREATE TABLE "likes" (
-        "id" SERIAL NOT NULL, "user_id" uuid, "post_id" integer,
+        "id" SERIAL NOT NULL,
+        "user_id" uuid,
+        "post_id" uuid,
         "created_by" character varying(50) NOT NULL DEFAULT 'system',
         "updated_by" character varying(50) DEFAULT 'system',
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -24,20 +34,20 @@ export class Init1706943716001 implements MigrationInterface {
     )
     await queryRunner.query(
       `CREATE TABLE "channels" (
+        "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
         "title" character varying(50) NOT NULL,
         "is_paid" boolean NOT NULL DEFAULT false,
-        "moderator_id" uuid NOT NULL,
+        "moderator_id" uuid NOT NULL, "about" character varying(500),
         "background_image" character varying(250),
         "image" character varying(250),
         "price" numeric DEFAULT '0',
         "rules" character varying(500),
-        "about" character varying(500),
+        "total_members" numeric NOT NULL DEFAULT '0',
         "channel_status" "public"."channels_channel_status_enum" NOT NULL DEFAULT 'PUBLIC',
         "created_by" character varying(50) NOT NULL DEFAULT 'system',
         "updated_by" character varying(50) DEFAULT 'system',
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-        "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
         CONSTRAINT "UQ_9e68a1854184a9457f03759b8c8" UNIQUE ("title"),
         CONSTRAINT "PK_bc603823f3f741359c2339389f9" PRIMARY KEY ("id"))`
     )
@@ -46,16 +56,16 @@ export class Init1706943716001 implements MigrationInterface {
     )
     await queryRunner.query(
       `CREATE TABLE "channel_members" (
-        "id" uuid NOT NULL DEFAULT uuid_generate_v4(), 
-        "paid_status" boolean NOT NULL DEFAULT false, 
-        "channel_role" "public"."channel_members_channel_role_enum" NOT NULL DEFAULT 'MEMBER',
+        "id" SERIAL NOT NULL,
         "channel_id" uuid,
         "customer_id" uuid,
+        "paid_status" boolean NOT NULL DEFAULT false,
+        "channel_role" "public"."channel_members_channel_role_enum" NOT NULL DEFAULT 'MEMBER',
         "created_by" character varying(50) NOT NULL DEFAULT 'system',
         "updated_by" character varying(50) DEFAULT 'system',
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), 
-        CONSTRAINT "PK_d7b751ff402ee78df7285ac7539" PRIMARY KEY ("id"))`
+        "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_95976b619edca48aed364c70c36" PRIMARY KEY ("id"))`
     )
     await queryRunner.query(
       `CREATE TYPE "public"."customer_user_user_role_enum" AS ENUM('MODERATOR', 'USER')`
@@ -67,10 +77,10 @@ export class Init1706943716001 implements MigrationInterface {
         "first_name" character varying(50) NOT NULL,
         "last_name" character varying(50) NOT NULL,
         "password" character varying NOT NULL,
+        "stripe_customer_id" character varying(200),
         "is_active" boolean DEFAULT false,
         "cell_phone" character varying(20),
         "profile_image" character varying(250),
-        "stripe_customer_id" character varying(200),
         "following_count" numeric NOT NULL DEFAULT '0',
         "followers_count" numeric NOT NULL DEFAULT '0',
         "user_role" "public"."customer_user_user_role_enum" NOT NULL DEFAULT 'USER',
@@ -87,7 +97,9 @@ export class Init1706943716001 implements MigrationInterface {
     )
     await queryRunner.query(
       `CREATE TABLE "customer_followers" (
-        "id" SERIAL NOT NULL, "follower_id" uuid, "following_id" uuid,
+        "id" SERIAL NOT NULL,
+        "follower_id" uuid,
+        "following_id" uuid,
         "created_by" character varying(50) NOT NULL DEFAULT 'system',
         "updated_by" character varying(50) DEFAULT 'system',
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -96,13 +108,15 @@ export class Init1706943716001 implements MigrationInterface {
     )
     await queryRunner.query(
       `CREATE TABLE "posts" (
-        "id" SERIAL NOT NULL, "body" text NOT NULL DEFAULT '',
-        "images" text, "like_count" bigint NOT NULL DEFAULT '0',
-        "channel_id" uuid, 
+        "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+        "channel_id" uuid,
         "customer_id" uuid,
-        "created_by" character varying(50) NOT NULL DEFAULT 'system', 
+        "body" text NOT NULL DEFAULT '',
+        "images" text,
+        "like_count" bigint NOT NULL DEFAULT '0',
+        "created_by" character varying(50) NOT NULL DEFAULT 'system',
         "updated_by" character varying(50) DEFAULT 'system',
-        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), 
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
         CONSTRAINT "PK_2829ac61eff60fcec60d7274b9e" PRIMARY KEY ("id"))`
     )
@@ -120,16 +134,19 @@ export class Init1706943716001 implements MigrationInterface {
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
         CONSTRAINT "UQ_840ac5cd67be99efa5cd989bf9f" UNIQUE ("email"),
-        CONSTRAINT "PK_8ff51739a822a76e6b3e78c02da" PRIMARY KEY ("id"))`
+        CONSTRAINT "PK_a28028ba709cd7e5053a86857b4" PRIMARY KEY ("id"))`
     )
     await queryRunner.query(
-      `ALTER TABLE "social_provider" ADD CONSTRAINT "FK_9fc14f13d814ab10af08bb44e8c" FOREIGN KEY ("ref_id_customer") REFERENCES "customer_user"("id") ON DELETE CASCADE ON UPDATE NO ACTION`
+      `ALTER TABLE "social_provider" ADD CONSTRAINT "FK_4fdc01924ac0a57444eb4ea4de0" FOREIGN KEY ("customer_id") REFERENCES "customer_user"("id") ON DELETE CASCADE ON UPDATE NO ACTION`
     )
     await queryRunner.query(
       `ALTER TABLE "likes" ADD CONSTRAINT "FK_3f519ed95f775c781a254089171" FOREIGN KEY ("user_id") REFERENCES "customer_user"("id") ON DELETE CASCADE ON UPDATE CASCADE`
     )
     await queryRunner.query(
       `ALTER TABLE "likes" ADD CONSTRAINT "FK_741df9b9b72f328a6d6f63e79ff" FOREIGN KEY ("post_id") REFERENCES "posts"("id") ON DELETE CASCADE ON UPDATE CASCADE`
+    )
+    await queryRunner.query(
+      `ALTER TABLE "channels" ADD CONSTRAINT "FK_02d1504c4ddc63f3ec89ee565c5" FOREIGN KEY ("moderator_id") REFERENCES "customer_user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`
     )
     await queryRunner.query(
       `ALTER TABLE "channel_members" ADD CONSTRAINT "FK_71a10831469775a1effdd85f240" FOREIGN KEY ("channel_id") REFERENCES "channels"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`
@@ -166,10 +183,13 @@ export class Init1706943716001 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "channel_members" DROP CONSTRAINT "FK_71a10831469775a1effdd85f240"`
     )
+    await queryRunner.query(
+      `ALTER TABLE "channels" DROP CONSTRAINT "FK_02d1504c4ddc63f3ec89ee565c5"`
+    )
     await queryRunner.query(`ALTER TABLE "likes" DROP CONSTRAINT "FK_741df9b9b72f328a6d6f63e79ff"`)
     await queryRunner.query(`ALTER TABLE "likes" DROP CONSTRAINT "FK_3f519ed95f775c781a254089171"`)
     await queryRunner.query(
-      `ALTER TABLE "social_provider" DROP CONSTRAINT "FK_9fc14f13d814ab10af08bb44e8c"`
+      `ALTER TABLE "social_provider" DROP CONSTRAINT "FK_4fdc01924ac0a57444eb4ea4de0"`
     )
     await queryRunner.query(`DROP TABLE "admin_user"`)
     await queryRunner.query(`DROP TABLE "posts"`)

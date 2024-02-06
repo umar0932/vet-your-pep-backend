@@ -1,11 +1,11 @@
-import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql'
+import { ObjectType, Field, ID, registerEnumType, Int } from '@nestjs/graphql'
 
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
 
 import { ChannelStatus } from '../channel.constants'
-import { ChannelMember } from './channel-member.entity'
+import { ChannelMember } from './channel-members.entity'
 import { Post } from '@app/post/entities'
 import { Customer } from '@app/customer-user/entities'
 
@@ -36,10 +36,11 @@ export class Channel extends CustomBaseEntity {
   @Field(() => String)
   moderatorId!: string
 
-  @Field(() => Customer)
-  moderator!: Customer
-
   // Non Complusory Variables
+
+  @Column({ length: 500, name: 'about', nullable: true })
+  @Field(() => String, { nullable: true })
+  about?: string
 
   @Column({ length: 250, name: 'background_image', nullable: true })
   @Field(() => String, { nullable: true })
@@ -57,9 +58,9 @@ export class Channel extends CustomBaseEntity {
   @Field(() => String, { nullable: true })
   rules?: string
 
-  @Column({ length: 500, name: 'about', nullable: true })
-  @Field(() => String, { nullable: true })
-  about?: string
+  @Column({ type: 'numeric', name: 'total_members', default: 0 })
+  @Field(() => Int, { nullable: true })
+  totalMembers?: number
 
   // Enums
 
@@ -78,7 +79,8 @@ export class Channel extends CustomBaseEntity {
   @OneToMany(() => ChannelMember, channelMember => channelMember.channel, {
     eager: true,
     nullable: true,
-    cascade: true
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
   })
   members: ChannelMember[]
 
@@ -89,4 +91,9 @@ export class Channel extends CustomBaseEntity {
     cascade: true
   })
   posts: Post[]
+
+  @Field(() => Customer)
+  @ManyToOne(() => Customer, { eager: true })
+  @JoinColumn({ name: 'moderator_id', referencedColumnName: 'id' })
+  moderator!: Customer
 }

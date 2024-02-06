@@ -11,9 +11,9 @@ import { Likes } from './likes.entity'
 @ObjectType()
 export class Post extends CustomBaseEntity {
   // Primary key
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   @Field(() => ID)
-  id!: number
+  id!: string
 
   // Complusory Variables
 
