@@ -12,4 +12,7 @@ export class ListChannelsInput {
 
   @Field(() => ChannelFilterInputs, { nullable: true })
   filter?: ChannelFilterInputs
+
+  @Field(() => Boolean, { nullable: true, defaultValue: true })
+  joined?: boolean
 }

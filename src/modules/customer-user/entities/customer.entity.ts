@@ -3,7 +3,7 @@ import { ObjectType, Field, ID, registerEnumType, Int } from '@nestjs/graphql'
 import { Column, Entity, Index, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Transform } from 'class-transformer'
 
-import { ChannelMember } from '@app/channel/entities'
+import { Channel, ChannelMember } from '@app/channel/entities'
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
 import { Likes, Post } from '@app/post/entities'
 import { SocialProvider } from '@app/common/entities'
@@ -82,6 +82,13 @@ export class Customer extends CustomBaseEntity {
   role!: UserRole
 
   // Relations
+
+  @Field(() => [Channel], { nullable: true })
+  @OneToMany(() => Channel, channel => channel.moderator, {
+    nullable: true,
+    cascade: true
+  })
+  channels: Channel[]
 
   @OneToMany(() => ChannelMember, channelMember => channelMember.customer, {
     eager: true,

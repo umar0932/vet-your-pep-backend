@@ -1,2 +1,2 @@
-export * from './channel-member.entity'
+export * from './channel-members.entity'
 export * from './channel.entity'
