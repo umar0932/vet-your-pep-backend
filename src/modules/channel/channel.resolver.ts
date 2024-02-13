@@ -31,37 +31,23 @@ export class ChannelResolver {
   }
 
   @Query(() => ListChannelsResponse, {
-    description: 'The List of Channel user have joined with Pagination and filters'
+    description: 'The List of Channels user have joined or not with Pagination and filters'
   })
   @Allow()
-  async getMyChannels(
+  async getChannels(
     @Args('input') args: ListChannelsInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<ListChannelsResponse> {
     const { limit, joined, offset, filter } = args
-    const [channels, count] = await this.channelsService.getMyChannelsWithPagination(
+    const [channels, count] = await this.channelsService.getChannelsWithPagination(
       {
         limit,
         joined,
         offset,
         filter
       },
-      user.userId
+      user
     )
-    return { results: channels, totalRows: count, limit, offset }
-  }
-
-  @Query(() => ListChannelsResponse, {
-    description: 'The List of Channel with Pagination and filters'
-  })
-  @Allow()
-  async listChannels(@Args('input') args: ListChannelsInput): Promise<ListChannelsResponse> {
-    const { limit, offset, filter } = args
-    const [channels, count] = await this.channelsService.findAllChannelsWithPagination({
-      limit,
-      offset,
-      filter
-    })
     return { results: channels, totalRows: count, limit, offset }
   }
 

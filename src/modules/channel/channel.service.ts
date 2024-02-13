@@ -8,9 +8,9 @@ import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { uuid } from 'uuidv4'
 
 import { AdminService } from '@app/admin'
-import { SuccessResponse } from '@app/common'
 import { AwsS3ClientService } from '@app/aws-s3-client'
 import { CustomerUserService } from '@app/customer-user'
+import { JWT_STRATEGY_NAME, JwtUserPayload, SuccessResponse } from '@app/common'
 import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
 import { ChannelMember, Channel } from './entities'
@@ -62,13 +62,15 @@ export class ChannelService {
 
   // Public Methods
 
-  async checkChannelMemberByIdExist(channelId: string, userId: string): Promise<void> {
+  async checkChannelMemberByIdExist(channelId: string, userId: string): Promise<boolean> {
     if (!userId) throw new BadRequestException('User Id is invalid')
     const checkChannelMemberExist = await this.channelMemberRepository.count({
       where: { channel: { id: channelId }, customer: { id: userId } }
     })
 
-    if (checkChannelMemberExist > 0) throw new BadRequestException('User is already a member')
+    if (checkChannelMemberExist > 0) return true
+
+    return false
   }
 
   async getChannelByModeratorId(id: string, userId: string): Promise<Channel> {
@@ -97,40 +99,6 @@ export class ChannelService {
   }
 
   // Resolver Query Methods
-
-  async findAllChannelsWithPagination({
-    limit,
-    offset,
-    filter
-  }: ListChannelsInput): Promise<[Channel[], number]> {
-    const { title, search } = filter || {}
-
-    try {
-      const queryBuilder = await this.channelsRepository.createQueryBuilder('channels')
-
-      title && queryBuilder.andWhere('channels.title = :title', { title })
-
-      if (search) {
-        queryBuilder.andWhere(
-          new Brackets(qb => {
-            qb.where('LOWER(channels.title) LIKE LOWER(:search)', { search: `%${search}%` })
-          })
-        )
-      }
-
-      const [channels, total] = await queryBuilder
-        .take(limit)
-        .skip(offset)
-        .leftJoinAndSelect('channels.members', 'channelMember')
-        .leftJoinAndSelect('channels.posts', 'post')
-        .getManyAndCount()
-
-      return [channels, total]
-    } catch (error) {
-      throw new BadRequestException('Failed to find Channel')
-    }
-  }
-
   async getChannelById(id: string): Promise<Channel> {
     const findChannel = await this.channelsRepository.findOne({
       where: { id },
@@ -160,11 +128,14 @@ export class ChannelService {
     }
   }
 
-  async getMyChannelsWithPagination(
+  async getChannelsWithPagination(
     { limit, offset, filter, joined }: ListChannelsInput,
-    userId: string
+    user: JwtUserPayload
   ): Promise<[Channel[], number]> {
     const { title, search } = filter || {}
+    const { userId, type } = user || {}
+
+    if (type === JWT_STRATEGY_NAME.ADMIN) await this.adminService.getAdminById(userId)
 
     try {
       const queryBuilder = await this.channelsRepository.createQueryBuilder('channels')
@@ -186,10 +157,12 @@ export class ChannelService {
         .leftJoinAndSelect('channels.posts', 'post')
         .leftJoinAndSelect('channelMember.customer', 'customer')
 
-      if (joined) {
-        await queryBuilder.where('customer.id = :userId', { userId })
-      } else {
-        await queryBuilder.andWhere('customer.id <> :userId', { userId })
+      if (type === JWT_STRATEGY_NAME.CUSTOMER) {
+        if (joined) {
+          await queryBuilder.where('customer.id = :userId', { userId })
+        } else {
+          await queryBuilder.andWhere('customer.id <> :userId', { userId })
+        }
       }
 
       const [channels, total] = await queryBuilder.getManyAndCount()
@@ -252,7 +225,8 @@ export class ChannelService {
       const { status } = channel
 
       if (status === ChannelStatus.PUBLIC) {
-        await this.checkChannelMemberByIdExist(channel.id, userId)
+        const checkChannelMemberExist = await this.checkChannelMemberByIdExist(channel.id, userId)
+        if (checkChannelMemberExist) throw new BadRequestException('User is already a member')
 
         try {
           await transactionalManager.save(ChannelMember, {
@@ -267,7 +241,9 @@ export class ChannelService {
           throw new BadRequestException('Failed to join the channel.')
         }
       } else if (status === ChannelStatus.PRIVATE) {
-        await this.checkChannelMemberByIdExist(channel.id, userId)
+        const checkChannelMemberExist = await this.checkChannelMemberByIdExist(channel.id, userId)
+        if (checkChannelMemberExist) throw new BadRequestException('User is already a member')
+
         return { success: false, message: 'Channel is private.' }
       } else throw new BadRequestException('Cannot join a non-public channel.')
 

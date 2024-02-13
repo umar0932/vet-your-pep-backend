@@ -2,20 +2,20 @@ import { BadRequestException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm'
 
-import { EntityManager, Repository } from 'typeorm'
+import { Brackets, EntityManager, Repository } from 'typeorm'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { uuid } from 'uuidv4'
 
 import { AdminService } from '@app/admin'
-import { SuccessResponse } from '@app/common'
 import { AwsS3ClientService } from '@app/aws-s3-client'
 import { ChannelService } from '@app/channel'
 import { CustomerUserService } from '@app/customer-user'
+import { JWT_STRATEGY_NAME, JwtUserPayload, SuccessResponse } from '@app/common'
 import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
+import { CreatePostInput, ListPostsInput, UpdatePostInput } from './dto/inputs'
 import { Post } from './entities'
-import { CreatePostInput } from './dto/inputs'
 
 @Injectable()
 export class PostService {
@@ -33,9 +33,9 @@ export class PostService {
   // Private Methods
 
   // Public Methods
-  async getPostById(id: string): Promise<Post> {
+  async getPostById(id: string, userId: string): Promise<Post> {
     const findPosts = await this.postRepository.findOne({
-      where: { id }
+      where: { id, createdBy: userId }
     })
     if (!findPosts) throw new BadRequestException('Post with the provided ID does not exist')
 
@@ -68,15 +68,58 @@ export class PostService {
     return urls
   }
 
+  async getPostsWithPagination(
+    { limit, offset, filter }: ListPostsInput,
+    user: JwtUserPayload
+  ): Promise<[Post[], number]> {
+    const { search } = filter || {}
+    const { userId, type } = user || {}
+
+    if (type === JWT_STRATEGY_NAME.ADMIN) await this.adminService.getAdminById(userId)
+
+    try {
+      const queryBuilder = await this.postRepository.createQueryBuilder('posts')
+
+      if (search) {
+        await queryBuilder.andWhere(
+          new Brackets(qb => {
+            qb.where('LOWER(posts.body) LIKE LOWER(:search)', { search: `%${search}%` })
+          })
+        )
+      }
+
+      await queryBuilder
+        .take(limit)
+        .skip(offset)
+        .leftJoinAndSelect('posts.likes', 'likes')
+        .leftJoinAndSelect('posts.customer', 'customer')
+
+      if (type === JWT_STRATEGY_NAME.CUSTOMER)
+        await queryBuilder.where('customer.id = :userId', { userId })
+
+      const [channels, total] = await queryBuilder.getManyAndCount()
+
+      return [channels, total]
+    } catch (error) {
+      throw new BadRequestException('Failed to find Channel')
+    }
+  }
+
   // Resolver Mutation Methods
 
   async createPost(createPostInput: CreatePostInput, userId: string): Promise<SuccessResponse> {
-    const { channelId, customerId, ...rest } = createPostInput
+    const { channelId, ...rest } = createPostInput
 
-    let customer, channel
-    if (customerId) customer = await this.customerService.getCustomerById(customerId)
+    let channel
+    const customer = await this.customerService.getCustomerById(userId)
 
     if (channelId) channel = await this.channelService.getChannelById(channelId)
+
+    const checkChannelMemberExist = await this.channelService.checkChannelMemberByIdExist(
+      channel.id,
+      userId
+    )
+    if (!checkChannelMemberExist) throw new BadRequestException('Only channel members can post')
 
     try {
       await this.postRepository.save({
@@ -90,5 +133,36 @@ export class PostService {
     }
 
     return { success: true, message: 'Post Created' }
+  }
+
+  async updatePost(updatePostInput: UpdatePostInput, userId: string): Promise<SuccessResponse> {
+    const { channelId, postId, ...rest } = updatePostInput
+
+    const post = await this.getPostById(postId, userId)
+
+    let channel
+    const customer = await this.customerService.getCustomerById(userId)
+
+    if (channelId) channel = await this.channelService.getChannelById(channelId)
+
+    const checkChannelMemberExist = await this.channelService.checkChannelMemberByIdExist(
+      channel.id,
+      userId
+    )
+    if (!checkChannelMemberExist) throw new BadRequestException('Only channel members can post')
+
+    try {
+      await this.postRepository.update(post.id, {
+        ...rest,
+        channel: channel,
+        customer: { id: customer.id },
+        updatedBy: userId,
+        updatedDate: new Date()
+      })
+    } catch (error) {
+      throw new BadRequestException('Failed to update post')
+    }
+
+    return { success: true, message: 'Post Updated' }
   }
 }

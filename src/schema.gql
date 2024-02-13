@@ -97,7 +97,6 @@ input CreateCustomerInput {
 input CreatePostInput {
   body: String!
   channelId: String!
-  customerId: String!
   images: [String!]
 }
 
@@ -184,6 +183,19 @@ type ListCustomersResponse {
   totalRows: Float
 }
 
+input ListPostsInput {
+  filter: PostFilterInputs
+  limit: Float!
+  offset: Float = 0
+}
+
+type ListPostsResponse {
+  limit: Float!
+  offset: Float
+  results: [Post!]!
+  totalRows: Float
+}
+
 input LoginAdminInput {
   email: String!
   password: String!
@@ -254,6 +266,9 @@ type Mutation {
 
   """This will update Customer Password"""
   updateCustomerPassword(password: String!): SuccessResponse!
+
+  """This will create new Post"""
+  updatePost(input: UpdatePostInput!): SuccessResponse!
 }
 
 type PageData {
@@ -272,12 +287,21 @@ type Post {
   likes: [Likes!]
 }
 
+input PostFilterInputs {
+  search: String
+}
+
 type Query {
   """This will create get a Channel"""
   getChannelById(input: String!): Channel!
 
   """Get S3 bucket Signed Url"""
   getChannelUploadUrl: S3SignedUrlResponse!
+
+  """
+  The List of Channels user have joined or not with Pagination and filters
+  """
+  getChannels(input: ListChannelsInput!): ListChannelsResponse!
 
   """Get the Customer"""
   getCustomerData: Customer!
@@ -294,14 +318,11 @@ type Query {
   """Get the followers of the authenticated customer"""
   getFollowing: [Customer!]!
 
-  """The List of Channel user have joined with Pagination and filters"""
-  getMyChannels(input: ListChannelsInput!): ListChannelsResponse!
-
   """Get S3 bucket Signed Url"""
   getPostUploadUrls(count: Float!): [S3SignedUrlResponse!]!
 
-  """The List of Channel with Pagination and filters"""
-  listChannels(input: ListChannelsInput!): ListChannelsResponse!
+  """The List of posts with Pagination and filters"""
+  getPosts(input: ListPostsInput!): ListPostsResponse!
 
   """The List of Customers with filters"""
   searchCustomers(search: String!): SearchCustomersResponse!
@@ -365,6 +386,13 @@ input UpdateCustomerInput {
   lastName: String
   profileImage: String
   stripeCustomerId: String
+}
+
+input UpdatePostInput {
+  body: String!
+  channelId: String!
+  images: [String!]
+  postId: ID!
 }
 
 """The role of Users"""
