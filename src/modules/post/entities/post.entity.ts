@@ -2,10 +2,11 @@ import { ObjectType, Field, ID, Int } from '@nestjs/graphql'
 
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 
+import { Channel } from '@app/channel/entities'
+import { Comments } from '@app/comments/entities'
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
 import { Customer } from '@app/customer-user/entities'
-import { Channel } from '@app/channel/entities'
-import { Likes } from './likes.entity'
+import { Likes } from '@app/like/entities'
 
 @Entity({ name: 'posts' })
 @ObjectType()
@@ -51,7 +52,11 @@ export class Post extends CustomBaseEntity {
   })
   likes: Likes[]
 
-  // @Field(() => [Comment], { nullable: true })
-  // @OneToMany(() => Comment, comment => comment.post, { eager: true, nullable: true, cascade: true })
-  // comments: Comment[]
+  @Field(() => [Comments], { nullable: true })
+  @OneToMany(() => Comments, (comment: Comments) => comment.post, {
+    eager: true,
+    nullable: true,
+    cascade: true
+  })
+  comments: Comments[]
 }

@@ -4,8 +4,10 @@ import { Column, Entity, Index, OneToMany, OneToOne, PrimaryGeneratedColumn } fr
 import { Transform } from 'class-transformer'
 
 import { Channel, ChannelMember } from '@app/channel/entities'
+import { Comments } from '@app/comments/entities'
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
-import { Likes, Post } from '@app/post/entities'
+import { Likes } from '@app/like/entities'
+import { Post } from '@app/post/entities'
 import { SocialProvider } from '@app/common/entities'
 
 import { UserRole } from '../customer-user.constants'
@@ -97,13 +99,12 @@ export class Customer extends CustomBaseEntity {
   })
   channelMembers: ChannelMember[]
 
-  // @Field(() => [Comment], { nullable: true })
-  // @OneToMany(() => Comment, comment => comment.customer, {
-  //   eager: true,
-  //   nullable: true,
-  //   cascade: true
-  // })
-  // comments: Comment[]
+  @Field(() => [Comments], { nullable: true })
+  @OneToMany(() => Comments, comments => comments.user, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
+  })
+  comments: Comments[]
 
   @Field(() => [CustomerFollower], { nullable: true })
   @OneToMany(() => CustomerFollower, (uf: CustomerFollower) => uf.followers, {

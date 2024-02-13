@@ -33,9 +33,19 @@ export class PostService {
   // Private Methods
 
   // Public Methods
+
   async getPostById(id: string, userId: string): Promise<Post> {
     const findPosts = await this.postRepository.findOne({
       where: { id, createdBy: userId }
+    })
+    if (!findPosts) throw new BadRequestException('Post with the provided ID does not exist')
+
+    return findPosts
+  }
+
+  async findFromAllPost(id: string): Promise<Post> {
+    const findPosts = await this.postRepository.findOne({
+      where: { id }
     })
     if (!findPosts) throw new BadRequestException('Post with the provided ID does not exist')
 

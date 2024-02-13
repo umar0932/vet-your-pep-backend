@@ -65,6 +65,17 @@ enum ChannelUserRole {
   MODERATOR
 }
 
+type Comments {
+  content: String!
+  id: ID!
+  post: Post!
+  user: Customer!
+}
+
+input CommentsFilterInputs {
+  search: String
+}
+
 input CreateAdminUserInput {
   email: String!
   firstName: String!
@@ -87,11 +98,20 @@ input CreateChargeInput {
   paymentMethodId: String!
 }
 
+input CreateCommentInput {
+  content: String!
+  postId: String!
+}
+
 input CreateCustomerInput {
   email: String!
   firstName: String!
   lastName: String!
   password: String!
+}
+
+input CreateLikeInput {
+  postId: String!
 }
 
 input CreatePostInput {
@@ -103,6 +123,7 @@ input CreatePostInput {
 type Customer {
   cellPhone: String
   channels: [Channel!]
+  comments: [Comments!]
   email: String!
   firstName: String!
   followers: [CustomerFollower!]
@@ -170,6 +191,19 @@ type ListChannelsResponse {
   totalRows: Float
 }
 
+input ListCommentsInput {
+  filter: CommentsFilterInputs
+  limit: Float!
+  offset: Float = 0
+}
+
+type ListCommentsResponse {
+  limit: Float!
+  offset: Float
+  results: [Comments!]!
+  totalRows: Float
+}
+
 input ListCustomersInputs {
   filter: CustomerFilterInput
   limit: Float!
@@ -216,11 +250,17 @@ type Mutation {
   """This will create new Channel"""
   createChannel(input: CreateChannelInput!): SuccessResponse!
 
+  """This will create new Comment"""
+  createComment(input: CreateCommentInput!): SuccessResponse!
+
   """This will signup new Customers"""
   createCustomer(input: CreateCustomerInput!): CustomerLoginOrRegisterResponse!
 
   """This will create new Post"""
   createPost(input: CreatePostInput!): SuccessResponse!
+
+  """This will create new Like"""
+  createPostLike(input: CreateLikeInput!): SuccessResponse!
 
   """This will follow a customer"""
   followCustomer(customerId: String!): SuccessResponse!
@@ -258,6 +298,9 @@ type Mutation {
   """This will create new Channel"""
   updateChannel(input: UpdateChannelInput!): SuccessResponse!
 
+  """This will update new Comment"""
+  updateComment(input: UpdateCommentInput!): SuccessResponse!
+
   """This will update Customer"""
   updateCustomer(input: UpdateCustomerInput!): Customer!
 
@@ -267,8 +310,11 @@ type Mutation {
   """This will update Customer Password"""
   updateCustomerPassword(password: String!): SuccessResponse!
 
-  """This will create new Post"""
+  """This will update new Post"""
   updatePost(input: UpdatePostInput!): SuccessResponse!
+
+  """This will update new Like"""
+  updatePostLike(input: UpdateLikeInput!): SuccessResponse!
 }
 
 type PageData {
@@ -280,6 +326,7 @@ type PageData {
 type Post {
   body: String!
   channel: Channel
+  comments: [Comments!]
   customer: Customer!
   id: ID!
   images: [String!]
@@ -302,6 +349,9 @@ type Query {
   The List of Channels user have joined or not with Pagination and filters
   """
   getChannels(input: ListChannelsInput!): ListChannelsResponse!
+
+  """The List of comments with Pagination and filters"""
+  getComments(input: ListCommentsInput!): ListCommentsResponse!
 
   """Get the Customer"""
   getCustomerData: Customer!
@@ -379,6 +429,12 @@ input UpdateChannelInput {
   title: String!
 }
 
+input UpdateCommentInput {
+  commentId: ID!
+  content: String!
+  postId: String!
+}
+
 input UpdateCustomerInput {
   cellPhone: String
   firstName: String
@@ -386,6 +442,11 @@ input UpdateCustomerInput {
   lastName: String
   profileImage: String
   stripeCustomerId: String
+}
+
+input UpdateLikeInput {
+  likeId: ID!
+  postId: String!
 }
 
 input UpdatePostInput {
