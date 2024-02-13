@@ -18,11 +18,6 @@ export class CreatePostInput {
   @IsUUID('4', { message: 'Invalid Channel UUID format' })
   channelId!: string
 
-  @Field(() => String)
-  @IsNotEmpty({ message: 'Customer id cannot be empty' })
-  @IsUUID('4', { message: 'Invalid Customer UUID format' })
-  customerId!: string
-
   // Non Complusory Variables
 
   @Field(() => [String], { nullable: true })
