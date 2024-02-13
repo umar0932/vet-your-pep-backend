@@ -4,7 +4,7 @@ import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
 import { Customer } from '@app/customer-user/entities'
-import { Post } from './post.entity'
+import { Post } from '@app/post/entities'
 
 @Entity({ name: 'likes' })
 @ObjectType()

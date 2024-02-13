@@ -58,7 +58,7 @@ export class PostResolver {
   }
 
   @Mutation(() => SuccessResponse, {
-    description: 'This will create new Post'
+    description: 'This will update new Post'
   })
   @Allow()
   async updatePost(
