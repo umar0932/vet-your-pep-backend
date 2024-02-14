@@ -350,6 +350,9 @@ type Query {
   """
   getChannels(input: ListChannelsInput!): ListChannelsResponse!
 
+  """Get Session Token for Chat SDK"""
+  getChatToken: String!
+
   """The List of comments with Pagination and filters"""
   getComments(input: ListCommentsInput!): ListCommentsResponse!
 

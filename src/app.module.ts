@@ -11,6 +11,7 @@ import { join } from 'path'
 import { AdminModule } from '@app/admin'
 import { AwsS3ClientModule } from '@app/aws-s3-client'
 import { ChannelsModule } from '@app/channel'
+import { ChatModule } from '@app/chat'
 import { CommentModule } from '@app/comments'
 import { CustomerUserModule } from '@app/customer-user'
 import { LikeModule } from '@app/like'
@@ -55,6 +56,7 @@ const env = `${process.env.NODE_ENV}`
     AdminModule,
     AwsS3ClientModule,
     ChannelsModule,
+    ChatModule,
     CommentModule,
     CustomerUserModule,
     LikeModule,

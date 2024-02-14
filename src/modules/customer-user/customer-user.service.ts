@@ -50,7 +50,7 @@ export class CustomerUserService {
     private customerRepository: Repository<Customer>,
     @InjectRepository(CustomerFollower)
     private customerFollowerRepository: Repository<CustomerFollower>,
-    @InjectEntityManager() private readonly manager: EntityManager,
+    @InjectEntityManager() private readonly entityManager: EntityManager,
     @Inject(forwardRef(() => PaymentService))
     private paymentService: PaymentService,
     private jwtService: JwtService,
@@ -98,7 +98,7 @@ export class CustomerUserService {
     following: Customer,
     method: string
   ): Promise<void> {
-    return this.manager.transaction(async transactionalManager => {
+    return this.entityManager.transaction(async transactionalManager => {
       const follower = await this.getCustomerById(followerId)
       try {
         const { totalFollowers } = following
@@ -205,7 +205,7 @@ export class CustomerUserService {
   }
 
   async saveProviderAndCustomer(customer: Partial<Customer>, provider: Partial<SocialProvider>) {
-    return this.manager.transaction(async transactionalManager => {
+    return this.entityManager.transaction(async transactionalManager => {
       const createdCustomer = transactionalManager.create(Customer, customer)
       const savedCustomer = await transactionalManager.save(createdCustomer)
       await transactionalManager.save(SocialProvider, {
@@ -380,11 +380,13 @@ export class CustomerUserService {
     if (checkCustomerEmail)
       throw new BadRequestException('User is already registered with other account')
 
+    const name = `${firstName} ${lastName}`
     try {
+      const stripeCustomer = await this.paymentService.createStripeCustomer(name, email)
       const randomPassword = await randomStringGenerator()
       const pwd = await encodePassword(randomPassword)
       const customer: Partial<Customer> = await this.saveProviderAndCustomer(
-        { email, firstName, lastName, password: pwd },
+        { email, firstName, lastName, password: pwd, stripeCustomerId: stripeCustomer.id },
         { provider, socialId }
       )
 
