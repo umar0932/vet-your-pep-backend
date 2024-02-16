@@ -85,6 +85,8 @@ input CreateAdminUserInput {
 
 input CreateChannelInput {
   about: String
+  backgroundImage: String
+  image: String
   moderatorId: String!
   rules: String
   status: ChannelStatus! = PUBLIC
@@ -435,7 +437,9 @@ input UpdateAdminUserInput {
 
 input UpdateChannelInput {
   about: String
+  backgroundImage: String
   id: ID!
+  image: String
   rules: String
   title: String!
 }
