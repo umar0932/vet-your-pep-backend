@@ -317,6 +317,11 @@ type Mutation {
   updatePostLike(input: UpdateLikeInput!): SuccessResponse!
 }
 
+type OtherCustomerDataResponse {
+  isFollowing: Boolean!
+  user: Customer!
+}
+
 type PageData {
   count: Int!
   limit: Int
@@ -370,6 +375,9 @@ type Query {
 
   """Get the followers of the authenticated customer"""
   getFollowing: [Customer!]!
+
+  """Get other Customer Data"""
+  getOtherCustomerData(customerId: String!): OtherCustomerDataResponse!
 
   """Get S3 bucket Signed Url"""
   getPostUploadUrls(count: Float!): [S3SignedUrlResponse!]!

@@ -18,6 +18,7 @@ import {
   CustomerEmailUpdateResponse,
   CustomerLoginOrRegisterResponse,
   ListCustomersResponse,
+  OtherCustomerDataResponse,
   SearchCustomersResponse
 } from './dto/args'
 import { CustomerUserService } from './customer-user.service'
@@ -73,6 +74,17 @@ export class CustomerUserResolver {
   @Allow()
   async getFollowing(@CurrentUser() user: JwtUserPayload): Promise<Customer[]> {
     return this.customerUserService.getFollowing(user.userId)
+  }
+
+  @Query(() => OtherCustomerDataResponse, { description: 'Get other Customer Data' })
+  @Allow()
+  async getOtherCustomerData(
+    @CurrentUser() user: JwtUserPayload,
+    @Args('customerId') customerId: string
+  ): Promise<OtherCustomerDataResponse> {
+    const otherCustomer = await this.customerUserService.getCustomerById(customerId)
+    const isFollowing = await this.customerUserService.isFollowing(user.userId, customerId)
+    return { user: otherCustomer, isFollowing }
   }
 
   @Query(() => SearchCustomersResponse, {
