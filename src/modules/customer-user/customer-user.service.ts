@@ -318,6 +318,13 @@ export class CustomerUserService {
     return following.map(followTo => followTo.following)
   }
 
+  async isFollowing(currentUserId: string, otherCustomerId: string): Promise<boolean> {
+    const followRelationship = await this.customerFollowerRepository.findOne({
+      where: { followers: { id: currentUserId }, following: { id: otherCustomerId } }
+    })
+    return !!followRelationship
+  }
+
   async searchCustomers(search: string): Promise<[Customer[], number]> {
     try {
       const queryBuilder = await this.customerRepository.createQueryBuilder('customer_user')
