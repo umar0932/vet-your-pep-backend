@@ -153,6 +153,7 @@ export class ChannelService {
       await queryBuilder
         .take(limit)
         .skip(offset)
+        .leftJoinAndSelect('channels.moderator', 'moderator')
         .leftJoinAndSelect('channels.members', 'channelMember')
         .leftJoinAndSelect('channels.posts', 'post')
         .leftJoinAndSelect('channelMember.customer', 'customer')
@@ -161,7 +162,15 @@ export class ChannelService {
         if (joined) {
           await queryBuilder.where('customer.id = :userId', { userId })
         } else {
-          await queryBuilder.andWhere('customer.id <> :userId', { userId })
+          const subQuery = this.channelsRepository
+            .createQueryBuilder('channels')
+            .leftJoin('channels.members', 'cm')
+            .andWhere('cm.customer.id = :userId', { userId })
+            .select('channels.id')
+
+          await queryBuilder
+            .andWhere('channels.id NOT IN (' + subQuery.getQuery() + ')')
+            .setParameters(subQuery.getParameters())
         }
       }
 
