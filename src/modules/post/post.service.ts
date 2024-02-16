@@ -79,9 +79,10 @@ export class PostService {
   }
 
   async getPostsWithPagination(
-    { limit, offset, filter }: ListPostsInput,
+    listPostsInput: ListPostsInput,
     user: JwtUserPayload
-  ): Promise<[Post[], number]> {
+  ): Promise<[Post[], number, number, number]> {
+    const { limit, offset, filter, myPosts, customerId } = listPostsInput
     const { search } = filter || {}
     const { userId, type } = user || {}
 
@@ -103,13 +104,35 @@ export class PostService {
         .skip(offset)
         .leftJoinAndSelect('posts.likes', 'likes')
         .leftJoinAndSelect('posts.customer', 'customer')
+        .leftJoinAndSelect('posts.comments', 'comments')
 
-      if (type === JWT_STRATEGY_NAME.CUSTOMER)
-        await queryBuilder.where('customer.id = :userId', { userId })
+      if (type === JWT_STRATEGY_NAME.CUSTOMER) {
+        if (myPosts) {
+          queryBuilder.where('customer.id = :userId', { userId })
+        } else if (customerId) {
+          const channelQueryBuilder = await this.channelService.channelQuerBuilder()
+          const commonChannelsSubQuery = channelQueryBuilder
+            .innerJoin('channels.members', 'cm1')
+            .innerJoin(
+              'channels.members',
+              'cm2',
+              'cm1.customer.id = :userId AND cm2.customer.id = :customerId',
+              { userId, customerId }
+            )
+            .select('channels.id')
 
+          queryBuilder
+            .innerJoin('posts.channel', 'postChannel')
+            .innerJoin('posts.customer', 'user', 'user.id = :customerId', {
+              customerId
+            })
+            .andWhere('postChannel.id IN (' + commonChannelsSubQuery.getQuery() + ')')
+            .setParameters(commonChannelsSubQuery.getParameters())
+        }
+      }
       const [channels, total] = await queryBuilder.getManyAndCount()
 
-      return [channels, total]
+      return [channels, total, limit, offset]
     } catch (error) {
       throw new BadRequestException('Failed to find Channel')
     }

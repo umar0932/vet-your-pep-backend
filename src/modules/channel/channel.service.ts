@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm'
 
-import { Brackets, EntityManager, Repository } from 'typeorm'
+import { Brackets, EntityManager, Repository, SelectQueryBuilder } from 'typeorm'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { uuid } from 'uuidv4'
@@ -61,6 +61,11 @@ export class ChannelService {
   }
 
   // Public Methods
+
+  async channelQuerBuilder(): Promise<SelectQueryBuilder<Channel>> {
+    const queryBuilder = this.channelsRepository.createQueryBuilder('channels')
+    return queryBuilder
+  }
 
   async checkChannelMemberByIdExist(channelId: string, userId: string): Promise<boolean> {
     if (!userId) throw new BadRequestException('User Id is invalid')
@@ -156,6 +161,9 @@ export class ChannelService {
         .leftJoinAndSelect('channels.moderator', 'moderator')
         .leftJoinAndSelect('channels.members', 'channelMember')
         .leftJoinAndSelect('channels.posts', 'post')
+        .leftJoinAndSelect('post.likes', 'likes')
+        .leftJoinAndSelect('post.customer', 'user')
+        .leftJoinAndSelect('likes.customer', 'customerlike')
         .leftJoinAndSelect('channelMember.customer', 'customer')
 
       if (type === JWT_STRATEGY_NAME.CUSTOMER) {

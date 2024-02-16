@@ -3,6 +3,8 @@
 # ------------------------------------------------------
 
 type Admin {
+  createdBy: String!
+  createdDate: DateTime!
   email: String!
   firstName: String!
   id: ID!
@@ -10,6 +12,8 @@ type Admin {
   lastName: String!
   password: String!
   profileImage: String
+  updatedBy: String!
+  updatedDate: DateTime!
 }
 
 type AdminEmailUpdateResponse {
@@ -25,6 +29,8 @@ type AdminLoginResponse {
 type Channel {
   about: String
   backgroundImage: String
+  createdBy: String!
+  createdDate: DateTime!
   id: ID!
   image: String
   isPaid: Boolean!
@@ -37,6 +43,8 @@ type Channel {
   status: ChannelStatus!
   title: String!
   totalMembers: Int
+  updatedBy: String!
+  updatedDate: DateTime!
 }
 
 input ChannelFilterInputs {
@@ -46,10 +54,14 @@ input ChannelFilterInputs {
 
 type ChannelMember {
   channel: Channel!
+  createdBy: String!
+  createdDate: DateTime!
   customer: Customer!
   id: ID!
   paidStatus: Boolean!
   roleChannel: ChannelUserRole!
+  updatedBy: String!
+  updatedDate: DateTime!
 }
 
 """The status of channels"""
@@ -67,8 +79,12 @@ enum ChannelUserRole {
 
 type Comments {
   content: String!
+  createdBy: String!
+  createdDate: DateTime!
   id: ID!
   post: Post!
+  updatedBy: String!
+  updatedDate: DateTime!
   user: Customer!
 }
 
@@ -126,6 +142,8 @@ type Customer {
   cellPhone: String
   channels: [Channel!]
   comments: [Comments!]
+  createdBy: String!
+  createdDate: DateTime!
   email: String!
   firstName: String!
   followers: [CustomerFollower!]
@@ -142,6 +160,8 @@ type Customer {
   stripeCustomerId: String
   totalFollowers: Int
   totalFollowings: Int
+  updatedBy: String!
+  updatedDate: DateTime!
 }
 
 type CustomerEmailUpdateResponse {
@@ -159,9 +179,13 @@ input CustomerFilterInput {
 }
 
 type CustomerFollower {
+  createdBy: String!
+  createdDate: DateTime!
   followers: Customer
   following: Customer
   id: ID!
+  updatedBy: String!
+  updatedDate: DateTime!
 }
 
 type CustomerLoginOrRegisterResponse {
@@ -175,7 +199,11 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type Likes {
+  createdBy: String!
+  createdDate: DateTime!
   id: ID!
+  updatedBy: String!
+  updatedDate: DateTime!
   user: String!
 }
 
@@ -220,8 +248,10 @@ type ListCustomersResponse {
 }
 
 input ListPostsInput {
+  customerId: String
   filter: PostFilterInputs
   limit: Float!
+  myPosts: Boolean = false
   offset: Float = 0
 }
 
@@ -334,11 +364,15 @@ type Post {
   body: String!
   channel: Channel
   comments: [Comments!]
+  createdBy: String!
+  createdDate: DateTime!
   customer: Customer!
   id: ID!
   images: [String!]
   likeCount: Int
   likes: [Likes!]
+  updatedBy: String!
+  updatedDate: DateTime!
 }
 
 input PostFilterInputs {

@@ -1,9 +1,10 @@
-import { Field } from '@nestjs/graphql'
+import { Field, ObjectType } from '@nestjs/graphql'
 import { Column, CreateDateColumn, UpdateDateColumn } from 'typeorm'
-
+@ObjectType()
 export abstract class CustomBaseEntity {
   @Column({ length: 50, type: 'varchar', default: 'system', name: 'created_by' })
-  createdBy = 'system'
+  @Field()
+  createdBy: string
 
   @Column({
     length: 50,
@@ -11,6 +12,7 @@ export abstract class CustomBaseEntity {
     default: 'system',
     name: 'updated_by'
   })
+  @Field()
   updatedBy?: string
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP', name: 'created_at' })

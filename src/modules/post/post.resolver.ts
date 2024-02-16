@@ -32,15 +32,7 @@ export class PostResolver {
     @Args('input') args: ListPostsInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<ListPostsResponse> {
-    const { limit, offset, filter } = args
-    const [posts, count] = await this.postService.getPostsWithPagination(
-      {
-        limit,
-        offset,
-        filter
-      },
-      user
-    )
+    const [posts, count, limit, offset] = await this.postService.getPostsWithPagination(args, user)
     return { results: posts, totalRows: count, limit, offset }
   }
 
