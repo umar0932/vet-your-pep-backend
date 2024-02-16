@@ -162,8 +162,7 @@ export class ChannelService {
         .leftJoinAndSelect('channels.members', 'channelMember')
         .leftJoinAndSelect('channels.posts', 'post')
         .leftJoinAndSelect('post.likes', 'likes')
-        .leftJoinAndSelect('post.customer', 'user')
-        .leftJoinAndSelect('likes.customer', 'customerlike')
+        .leftJoinAndSelect('likes.user', 'user')
         .leftJoinAndSelect('channelMember.customer', 'customer')
 
       if (type === JWT_STRATEGY_NAME.CUSTOMER) {
@@ -186,6 +185,7 @@ export class ChannelService {
 
       return [channels, total]
     } catch (error) {
+      console.log('error------>>>>', error)
       throw new BadRequestException('Failed to find Channel')
     }
   }

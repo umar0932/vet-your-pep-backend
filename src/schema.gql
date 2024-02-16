@@ -202,9 +202,10 @@ type Likes {
   createdBy: String!
   createdDate: DateTime!
   id: ID!
+  post: Post
   updatedBy: String!
   updatedDate: DateTime!
-  user: String!
+  user: Customer
 }
 
 input ListChannelsInput {

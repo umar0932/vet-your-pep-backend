@@ -87,7 +87,7 @@ export class LikeService {
         await transactionalManager.save(Likes, {
           ...rest,
           post: post,
-          customer: { id: customer.id },
+          user: { id: customer.id },
           createdBy: userId
         })
 

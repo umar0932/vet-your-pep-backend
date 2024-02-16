@@ -16,7 +16,7 @@ export class Likes extends CustomBaseEntity {
 
   // Relations
 
-  @Field(() => String)
+  @Field(() => Customer, { nullable: true })
   @ManyToOne(() => Customer, (user: Customer) => user.likes, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE'
@@ -24,6 +24,7 @@ export class Likes extends CustomBaseEntity {
   @JoinColumn({ name: 'user_id' })
   user: Customer
 
+  @Field(() => Post, { nullable: true })
   @ManyToOne(() => Post, (post: Post) => post.likes, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE'
