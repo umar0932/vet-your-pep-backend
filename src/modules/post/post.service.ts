@@ -108,7 +108,6 @@ export class PostService {
 
       if (type === JWT_STRATEGY_NAME.CUSTOMER) {
         if (userFeed) {
-          console.log('userFeed---->>>>', userFeed)
           const channelQueryBuilder = await this.channelService.channelQuerBuilder()
           const commonChannelsSubQuery = channelQueryBuilder
             .innerJoin('channels.members', 'cm1')

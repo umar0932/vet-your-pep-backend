@@ -182,7 +182,6 @@ export class ChannelService {
 
       return [channels, total]
     } catch (error) {
-      console.log('error------>>>>', error)
       throw new BadRequestException('Failed to find Channel')
     }
   }
@@ -201,8 +200,6 @@ export class ChannelService {
 
       const channelExists = await this.getChannelsByName(title)
       if (channelExists) throw new BadRequestException('Channel Name already exists')
-
-      console.log('ChannelStatus.PRIVATE------>>>', ChannelStatus.PRIVATE)
 
       if (status === ChannelStatus.PRIVATE && totalPrice <= 1)
         throw new BadRequestException('Channel price should be greater than 1')

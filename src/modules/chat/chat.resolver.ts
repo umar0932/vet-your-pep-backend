@@ -13,7 +13,6 @@ export class ChatResolver {
   })
   @Allow()
   async getChatToken(@CurrentUser() user: JwtUserPayload): Promise<string> {
-    console.log('getChatToken,', user)
     return await this.chatService.getSessionToken(user?.userId)
   }
 }
