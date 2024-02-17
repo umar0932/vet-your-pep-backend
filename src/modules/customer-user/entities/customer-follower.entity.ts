@@ -18,14 +18,18 @@ export class CustomerFollower extends CustomBaseEntity {
 
   @Field(() => Customer, { nullable: true })
   @ManyToOne(() => Customer, customer => customer.followers, {
-    nullable: true
+    nullable: true,
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
   })
   @JoinColumn({ name: 'follower_id' })
   followers: Customer
 
   @Field(() => Customer, { nullable: true })
   @ManyToOne(() => Customer, customer => customer.following, {
-    nullable: true
+    nullable: true,
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
   })
   @JoinColumn({ name: 'following_id' })
   following: Customer

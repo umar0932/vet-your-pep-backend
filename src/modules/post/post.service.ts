@@ -82,7 +82,7 @@ export class PostService {
     listPostsInput: ListPostsInput,
     user: JwtUserPayload
   ): Promise<[Post[], number, number, number]> {
-    const { limit, offset, filter, myPosts, customerId } = listPostsInput
+    const { limit, offset, filter, myPosts, customerId, userFeed } = listPostsInput
     const { search } = filter || {}
     const { userId, type } = user || {}
 
@@ -107,7 +107,32 @@ export class PostService {
         .leftJoinAndSelect('posts.comments', 'comments')
 
       if (type === JWT_STRATEGY_NAME.CUSTOMER) {
-        if (myPosts) {
+        if (userFeed) {
+          console.log('userFeed---->>>>', userFeed)
+          const channelQueryBuilder = await this.channelService.channelQuerBuilder()
+          const commonChannelsSubQuery = channelQueryBuilder
+            .innerJoin('channels.members', 'cm1')
+            .innerJoin(
+              'channels.members',
+              'cm2',
+              'cm1.customer.id = :userId AND cm2.customer.id <> :userId',
+              { userId }
+            )
+            .select('channels.id')
+
+          queryBuilder
+            .innerJoin('posts.channel', 'postChannel')
+            .innerJoin('postChannel.members', 'postChannelMember')
+            .andWhere(
+              '(postChannelMember.customerId = :userId OR postChannelMember.customerId IN (' +
+                commonChannelsSubQuery.getQuery() +
+                '))'
+            )
+            .setParameters({
+              ...commonChannelsSubQuery.getParameters(),
+              userId: userId
+            })
+        } else if (myPosts) {
           queryBuilder.where('customer.id = :userId', { userId })
         } else if (customerId) {
           const channelQueryBuilder = await this.channelService.channelQuerBuilder()

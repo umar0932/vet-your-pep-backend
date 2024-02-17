@@ -34,29 +34,33 @@ export class Post extends CustomBaseEntity {
 
   // Relations
 
-  @Field(() => Channel, { nullable: true })
-  @ManyToOne(() => Channel, channel => channel.posts, { nullable: true })
+  @Field(() => Channel)
+  @ManyToOne(() => Channel, channel => channel.posts, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
+  })
   @JoinColumn({ name: 'channel_id' })
   channel: Channel
 
   @Field(() => Customer)
-  @ManyToOne(() => Customer, customer => customer.posts)
+  @ManyToOne(() => Customer, customer => customer.posts, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
+  })
   @JoinColumn({ name: 'customer_id' })
   customer: Customer
 
   @Field(() => [Likes], { nullable: true })
   @OneToMany(() => Likes, (like: Likes) => like.post, {
     eager: true,
-    nullable: true,
-    cascade: true
+    nullable: true
   })
-  likes: Likes[]
+  likes?: Likes[]
 
   @Field(() => [Comments], { nullable: true })
   @OneToMany(() => Comments, (comment: Comments) => comment.post, {
     eager: true,
-    nullable: true,
-    cascade: true
+    nullable: true
   })
-  comments: Comments[]
+  comments?: Comments[]
 }

@@ -140,6 +140,7 @@ input CreatePostInput {
 
 type Customer {
   cellPhone: String
+  channelMembers: [Channel!]
   channels: [Channel!]
   comments: [Comments!]
   createdBy: String
@@ -254,6 +255,7 @@ input ListPostsInput {
   limit: Float!
   myPosts: Boolean = false
   offset: Float = 0
+  userFeed: Boolean = true
 }
 
 type ListPostsResponse {
@@ -363,7 +365,7 @@ type PageData {
 
 type Post {
   body: String!
-  channel: Channel
+  channel: Channel!
   comments: [Comments!]
   createdBy: String
   createdDate: DateTime

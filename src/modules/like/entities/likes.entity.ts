@@ -18,6 +18,7 @@ export class Likes extends CustomBaseEntity {
 
   @Field(() => Customer, { nullable: true })
   @ManyToOne(() => Customer, (user: Customer) => user.likes, {
+    eager: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE'
   })

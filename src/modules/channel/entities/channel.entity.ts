@@ -78,22 +78,22 @@ export class Channel extends CustomBaseEntity {
   @Field(() => [ChannelMember], { nullable: true })
   @OneToMany(() => ChannelMember, channelMember => channelMember.channel, {
     eager: true,
-    nullable: true,
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE'
+    nullable: true
   })
   members: ChannelMember[]
 
   @Field(() => [Post], { nullable: true })
   @OneToMany(() => Post, post => post.channel, {
     eager: true,
-    nullable: true,
-    cascade: true
+    nullable: true
   })
   posts: Post[]
 
   @Field(() => Customer)
-  @ManyToOne(() => Customer, { eager: true })
+  @ManyToOne(() => Customer, {
+    eager: true,
+    onDelete: 'SET NULL'
+  })
   @JoinColumn({ name: 'moderator_id', referencedColumnName: 'id' })
   moderator!: Customer
 }

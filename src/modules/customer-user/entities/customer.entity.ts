@@ -87,55 +87,47 @@ export class Customer extends CustomBaseEntity {
 
   @Field(() => [Channel], { nullable: true })
   @OneToMany(() => Channel, channel => channel.moderator, {
-    nullable: true,
-    cascade: true
+    nullable: true
   })
-  channels: Channel[]
+  channels?: Channel[]
 
+  @Field(() => [Channel], { nullable: true })
   @OneToMany(() => ChannelMember, channelMember => channelMember.customer, {
-    eager: true,
-    nullable: true,
-    cascade: true
+    nullable: true
   })
-  channelMembers: ChannelMember[]
+  channelMembers?: ChannelMember[]
 
   @Field(() => [Comments], { nullable: true })
   @OneToMany(() => Comments, comments => comments.user, {
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE'
+    nullable: true
   })
-  comments: Comments[]
+  comments?: Comments[]
 
   @Field(() => [CustomerFollower], { nullable: true })
   @OneToMany(() => CustomerFollower, (uf: CustomerFollower) => uf.followers, {
     eager: true,
-    nullable: true,
-    cascade: true
+    nullable: true
   })
-  followers: CustomerFollower[]
+  followers?: CustomerFollower[]
 
   @Field(() => [CustomerFollower], { nullable: true })
   @OneToMany(() => CustomerFollower, (uf: CustomerFollower) => uf.following, {
     eager: true,
-    nullable: true,
-    cascade: true
+    nullable: true
   })
-  following: CustomerFollower[]
+  following?: CustomerFollower[]
 
   @Field(() => [Likes], { nullable: true })
   @OneToMany(() => Likes, like => like.user, {
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE'
+    nullable: true
   })
-  likes: Likes[]
+  likes?: Likes[]
 
   @Field(() => [Post], { nullable: true })
   @OneToMany(() => Post, (post: Post) => post.customer, {
-    eager: true,
-    nullable: true,
-    cascade: true
+    nullable: true
   })
-  posts: Post[]
+  posts?: Post[]
 
   @Field(() => SocialProvider, { nullable: true })
   @OneToOne(() => SocialProvider, socialProvider => socialProvider.customer, {

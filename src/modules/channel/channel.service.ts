@@ -160,24 +160,21 @@ export class ChannelService {
         .skip(offset)
         .leftJoinAndSelect('channels.moderator', 'moderator')
         .leftJoinAndSelect('channels.members', 'channelMember')
-        .leftJoinAndSelect('channels.posts', 'post')
-        .leftJoinAndSelect('post.likes', 'likes')
-        .leftJoinAndSelect('likes.user', 'user')
         .leftJoinAndSelect('channelMember.customer', 'customer')
 
       if (type === JWT_STRATEGY_NAME.CUSTOMER) {
         if (joined) {
           await queryBuilder.where('customer.id = :userId', { userId })
         } else {
-          const subQuery = this.channelsRepository
-            .createQueryBuilder('channels')
+          const subQueryBuilder = this.manager
+            .createQueryBuilder(Channel, 'channels')
             .leftJoin('channels.members', 'cm')
             .andWhere('cm.customer.id = :userId', { userId })
             .select('channels.id')
 
           await queryBuilder
-            .andWhere('channels.id NOT IN (' + subQuery.getQuery() + ')')
-            .setParameters(subQuery.getParameters())
+            .andWhere('channels.id NOT IN (' + subQueryBuilder.getQuery() + ')')
+            .setParameters(subQueryBuilder.getParameters())
         }
       }
 
@@ -197,16 +194,17 @@ export class ChannelService {
     userId: string
   ): Promise<SuccessResponse> {
     return this.manager.transaction(async transactionalManager => {
-      await this.adminService.getAdminById(userId)
+      // await this.adminService.getAdminById(userId)
       const { title, moderatorId, status, totalPrice, ...rest } = createChannelInput
 
-      let moderator
-      if (moderatorId) moderator = await this.customerService.getCustomerById(moderatorId)
+      const moderator = await this.customerService.getCustomerById(moderatorId)
 
       const channelExists = await this.getChannelsByName(title)
       if (channelExists) throw new BadRequestException('Channel Name already exists')
 
-      if (status == ChannelStatus.PRIVATE && totalPrice <= 1)
+      console.log('ChannelStatus.PRIVATE------>>>', ChannelStatus.PRIVATE)
+
+      if (status === ChannelStatus.PRIVATE && totalPrice <= 1)
         throw new BadRequestException('Channel price should be greater than 1')
 
       try {
@@ -214,9 +212,9 @@ export class ChannelService {
           ...rest,
           title,
           status,
-          isPaid: ChannelStatus.PRIVATE ? true : false,
+          isPaid: status === ChannelStatus.PRIVATE ? true : false,
           totalPrice,
-          moderatorId: moderator.id,
+          moderatorId: moderatorId,
           createdBy: userId
         })
 
