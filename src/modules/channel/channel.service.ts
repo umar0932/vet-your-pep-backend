@@ -160,6 +160,13 @@ export class ChannelService {
         .skip(offset)
         .leftJoinAndSelect('channels.moderator', 'moderator')
         .leftJoinAndSelect('channels.members', 'channelMember')
+        .leftJoinAndSelect('channels.posts', 'post')
+        .leftJoinAndSelect('post.channel', 'postChannel')
+        .leftJoinAndSelect('post.likes', 'likes')
+        .leftJoinAndSelect('post.comments', 'comments')
+        .leftJoinAndSelect('post.customer', 'user')
+        .leftJoinAndSelect('likes.user', 'userLike')
+        .leftJoinAndSelect('comments.user', 'userComments')
         .leftJoinAndSelect('channelMember.customer', 'customer')
 
       if (type === JWT_STRATEGY_NAME.CUSTOMER) {
