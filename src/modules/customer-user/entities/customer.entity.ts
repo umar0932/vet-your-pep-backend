@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, registerEnumType, Int } from '@nestjs/graphql'
+import { ObjectType, Field, ID, Int } from '@nestjs/graphql'
 
 import { Column, Entity, Index, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Transform } from 'class-transformer'
@@ -10,13 +10,7 @@ import { Likes } from '@app/like/entities'
 import { Post } from '@app/post/entities'
 import { SocialProvider } from '@app/common/entities'
 
-import { UserRole } from '../customer-user.constants'
 import { CustomerFollower } from './customer-follower.entity'
-
-registerEnumType(UserRole, {
-  name: 'UserRole',
-  description: 'The role of Users'
-})
 
 @Entity({ name: 'customer_user' })
 @Index(['email'])

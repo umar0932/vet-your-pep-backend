@@ -108,9 +108,6 @@ export class Init1707165281875 implements MigrationInterface {
         CONSTRAINT "PK_95976b619edca48aed364c70c36" PRIMARY KEY ("id"))`
     )
     await queryRunner.query(
-      `CREATE TYPE "public"."customer_user_user_role_enum" AS ENUM('MODERATOR', 'USER')`
-    )
-    await queryRunner.query(
       `CREATE TABLE "posts" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
         "channel_id" uuid,
