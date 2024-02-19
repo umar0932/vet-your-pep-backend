@@ -54,11 +54,11 @@ const env = `${process.env.NODE_ENV}`
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
     AdminModule,
+    CustomerUserModule,
     AwsS3ClientModule,
     ChannelsModule,
     ChatModule,
     CommentModule,
-    CustomerUserModule,
     LikeModule,
     PaymentModule,
     PostModule
