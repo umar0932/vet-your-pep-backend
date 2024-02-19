@@ -184,10 +184,3 @@ mutation SaveCustomerMediaUrl {
   )
 }
 
-mutation MakeModerator {
-  makeModerator(input: "56264c77-c0ea-447b-ae3c-d9cc6c8d2b0f") {
-    message
-    success
-  }
-}
-

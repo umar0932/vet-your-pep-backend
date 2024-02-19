@@ -309,9 +309,6 @@ type Mutation {
   """Customer Login"""
   loginAsCustomer(input: LoginCustomerInput!): CustomerLoginOrRegisterResponse!
 
-  """This will a customer to moderator"""
-  makeModerator(input: String!): SuccessResponse!
-
   """This will save/update user profile image in DB"""
   saveCustomerMediaUrl(fileName: String!): String!
 

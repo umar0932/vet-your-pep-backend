@@ -74,15 +74,6 @@ export class Customer extends CustomBaseEntity {
 
   // Enums
 
-  @Field(() => UserRole)
-  @Column({
-    type: 'enum',
-    enum: UserRole,
-    default: UserRole.USER,
-    name: 'user_role'
-  })
-  role!: UserRole
-
   // Relations
 
   @Field(() => [Channel], { nullable: true })

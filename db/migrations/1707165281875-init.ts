@@ -17,7 +17,6 @@ export class Init1707165281875 implements MigrationInterface {
         "profile_image" character varying(250),
         "following_count" numeric NOT NULL DEFAULT '0',
         "followers_count" numeric NOT NULL DEFAULT '0',
-        "user_role" "public"."customer_user_user_role_enum" NOT NULL DEFAULT 'USER',
         "created_by" character varying(50) NOT NULL DEFAULT 'system',
         "updated_by" character varying(50) DEFAULT 'system',
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),

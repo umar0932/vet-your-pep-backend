@@ -39,7 +39,6 @@ import {
   CustomerLoginOrRegisterResponse,
   CustomerWithoutPasswordResponse
 } from './dto/args'
-import { UserRole } from './customer-user.constants'
 
 @Injectable()
 export class CustomerUserService {
@@ -171,17 +170,6 @@ export class CustomerUserService {
   getJwtToken = async ({ sub, email, firstName, lastName, profileImage, type }: JwtDto) => {
     const payload: JwtDto = { sub, email, firstName, lastName, profileImage, type }
     return this.jwtService.sign(payload)
-  }
-
-  async getModeratorById(id: string): Promise<Customer> {
-    if (!id) throw new BadRequestException('Moderator Id is invalid')
-    const findModeratorById = await this.customerRepository.findOne({
-      where: { id, role: UserRole.MODERATOR, isActive: true }
-    })
-    if (!findModeratorById)
-      throw new BadRequestException('Moderator with the provided ID does not exist')
-
-    return findModeratorById
   }
 
   async isValidPwd(pwd: string): Promise<boolean> {
@@ -446,23 +434,6 @@ export class CustomerUserService {
     await this.updateFollowerCounts(followerId, following, 'follow')
 
     return { success: true, message: 'Following successfully' }
-  }
-
-  async makeModerator(moderatorId: string, adminId: string): Promise<SuccessResponse> {
-    await this.adminService.getAdminById(adminId)
-
-    const moderator = await this.getCustomerById(moderatorId)
-
-    try {
-      await this.customerRepository.update(moderator.id, {
-        role: UserRole.MODERATOR,
-        updatedBy: adminId,
-        updatedDate: new Date()
-      })
-    } catch (e) {
-      throw new BadRequestException('Failed to update user role')
-    }
-    return { success: true, message: 'User role has been updated to moderator' }
   }
 
   async saveMediaUrl(userId: string, fileName: string): Promise<boolean> {

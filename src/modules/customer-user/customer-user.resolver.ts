@@ -140,17 +140,6 @@ export class CustomerUserResolver {
     return this.customerUserService.followCustomer(user.userId, customerId)
   }
 
-  @Mutation(() => SuccessResponse, {
-    description: 'This will a customer to moderator'
-  })
-  @Allow()
-  async makeModerator(
-    @CurrentUser() user: JwtUserPayload,
-    @Args('input') moderatorId: string
-  ): Promise<SuccessResponse> {
-    return await this.customerUserService.makeModerator(moderatorId, user.userId)
-  }
-
   @Mutation(() => String, {
     description: 'This will save/update user profile image in DB'
   })
