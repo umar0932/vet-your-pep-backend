@@ -156,7 +156,6 @@ type Customer {
   password: String!
   posts: [Post!]
   profileImage: String
-  role: UserRole!
   socialProvider: SocialProvider
   stripeCustomerId: String
   totalFollowers: Int
@@ -503,10 +502,4 @@ input UpdatePostInput {
   channelId: String!
   images: [String!]
   postId: ID!
-}
-
-"""The role of Users"""
-enum UserRole {
-  MODERATOR
-  USER
 }

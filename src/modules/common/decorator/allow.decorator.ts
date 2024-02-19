@@ -1,12 +1,6 @@
 import { applyDecorators, UseGuards } from '@nestjs/common'
-import { SetMetadata } from '@nestjs/common'
+import { JWTGuard } from '../guard/jwt-guard'
 
-import { UserRole } from '@app/customer-user'
-
-import { JWTGuard, RolesGuard } from '../guard'
-
-export const ROLES_KEY = 'roles'
-
-export const Allow = (userType?: UserRole[]) => {
-  return applyDecorators(SetMetadata(ROLES_KEY, userType), UseGuards(JWTGuard, RolesGuard))
+export const Allow = () => {
+  return applyDecorators(UseGuards(JWTGuard))
 }
