@@ -4,7 +4,7 @@ import { Allow, CurrentUser, JwtUserPayload, SuccessResponse } from '@app/common
 import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
 import { CreateEventInput, ListEventsInput, UpdateEventInput } from './dto/inputs'
-import { ListEventsResponse } from './dto/args'
+import { ListEventsResponse, PartialEventResponse } from './dto/args'
 import { Events } from './entities'
 import { EventService } from './event.service'
 
@@ -42,6 +42,14 @@ export class EventResolver {
       user
     )
     return { results: events, totalRows: count, limit, offset }
+  }
+
+  @Query(() => PartialEventResponse, {
+    description: 'The List of events by channelId'
+  })
+  @Allow()
+  async getEventsByChannel(@Args('channelId') channelId: string): Promise<PartialEventResponse> {
+    return await this.eventService.getEventByChannelId(channelId)
   }
 
   // Mutations

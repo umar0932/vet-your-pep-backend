@@ -327,9 +327,15 @@ export class CustomerUserService {
       if (search) {
         queryBuilder.andWhere(
           new Brackets(qb => {
-            qb.where('LOWER(customer_user.email) LIKE LOWER(:search)', {
+            qb.where('LOWER(customer_user.firstName) LIKE LOWER(:search)', {
               search: `%${search}%`
             })
+              .orWhere('LOWER(customer_user.lastName) LIKE LOWER(:search)', {
+                search: `%${search}%`
+              })
+              .orWhere('LOWER(customer_user.email) LIKE LOWER(:search)', {
+                search: `%${search}%`
+              })
           })
         )
       }

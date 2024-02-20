@@ -403,6 +403,10 @@ type PageData {
   offset: Int
 }
 
+type PartialEventResponse {
+  results: [Events!]!
+}
+
 type Post {
   body: String!
   channel: Channel!
@@ -454,6 +458,9 @@ type Query {
 
   """The List of events with Pagination and filters"""
   getEvents(input: ListEventsInput!): ListEventsResponse!
+
+  """The List of events by channelId"""
+  getEventsByChannel(channelId: String!): PartialEventResponse!
 
   """Get the followers of the authenticated customer"""
   getFollowers: [Customer!]!

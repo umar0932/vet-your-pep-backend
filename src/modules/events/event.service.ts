@@ -21,6 +21,7 @@ import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
 import { CreateEventInput, ListEventsInput, UpdateEventInput } from './dto/inputs'
 import { Events } from './entities'
+import { PartialEventResponse } from './dto/args'
 
 @Injectable()
 export class EventService {
@@ -65,6 +66,15 @@ export class EventService {
 
   // Resolver Query Methods
 
+  async getEventByChannelId(channelId: string): Promise<PartialEventResponse> {
+    const events = await this.eventRepository.findOne({
+      where: { channel: { id: channelId } }
+    })
+    if (!events) throw new NotFoundException('Event with the provided ID does not exist')
+
+    return { results: [events] }
+  }
+
   async getEventUploadUrls(count: number): Promise<S3SignedUrlResponse[]> {
     if (!count) throw new BadRequestException('Count cannot be less than 1')
     const urls: S3SignedUrlResponse[] = []
@@ -93,30 +103,27 @@ export class EventService {
     { limit, offset, filter }: ListEventsInput,
     user: JwtUserPayload
   ): Promise<[Events[], number]> {
+    if (user.type !== JWT_STRATEGY_NAME.ADMIN) throw new ForbiddenException('Only Admins Access')
     const { search } = filter || {}
-    const { userId, type } = user || {}
 
     try {
-      const queryBuilder = await this.eventRepository.createQueryBuilder('events')
+      const queryBuilder = this.eventRepository.createQueryBuilder('events')
 
       if (search) {
-        await queryBuilder.andWhere(
+        queryBuilder.andWhere(
           new Brackets(qb => {
             qb.where('LOWER(events.title) LIKE LOWER(:search)', { search: `%${search}%` })
           })
         )
       }
 
-      await queryBuilder.take(limit).skip(offset).leftJoinAndSelect('events.channel', 'channel')
+      queryBuilder.take(limit).skip(offset).leftJoinAndSelect('events.channel', 'channel')
 
-      if (type === JWT_STRATEGY_NAME.CUSTOMER)
-        await queryBuilder.where('customer.id = :userId', { userId })
+      const [events, total] = await queryBuilder.getManyAndCount()
 
-      const [channels, total] = await queryBuilder.getManyAndCount()
-
-      return [channels, total]
+      return [events, total]
     } catch (error) {
-      throw new BadRequestException('Failed to find Channel')
+      throw new BadRequestException('Failed to find Event')
     }
   }
 
