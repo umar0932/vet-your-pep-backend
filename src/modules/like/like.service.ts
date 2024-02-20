@@ -78,15 +78,16 @@ export class LikeService {
     return this.manager.transaction(async transactionalManager => {
       const { postId, ...rest } = createLikeInput
 
-      const customer = await this.customerService.getCustomerById(userId)
-
       const post = await this.postService.findFromAllPost(postId)
+
+      const alreadyLiked = post.likes?.some(like => like.user.id === userId)
+      if (alreadyLiked) throw new BadRequestException('User has already liked this post')
 
       try {
         await transactionalManager.save(Likes, {
           ...rest,
           post: post,
-          user: { id: customer.id },
+          user: { id: userId },
           createdBy: userId
         })
 
@@ -101,29 +102,29 @@ export class LikeService {
 
   async unlikePost(updateLikeInput: UpdateLikeInput, userId: string): Promise<SuccessResponse> {
     return this.manager.transaction(async transactionalManager => {
-      const { postId, likeId, ...rest } = updateLikeInput
-
-      const like = await this.getLikeById(likeId)
-
-      const customer = await this.customerService.getCustomerById(userId)
+      const { postId } = updateLikeInput
 
       const post = await this.postService.findFromAllPost(postId)
 
+      // Check if the user has liked the post
+      const existingLike = await transactionalManager.findOne(Likes, {
+        where: {
+          user: { id: userId },
+          post: { id: postId }
+        }
+      })
+
+      if (!existingLike) throw new BadRequestException('User has not liked this post')
+
       try {
-        await transactionalManager.update(Likes, like.id, {
-          ...rest,
-          post: post,
-          user: { id: customer.id },
-          updatedBy: userId,
-          updatedDate: new Date()
-        })
+        await transactionalManager.remove(existingLike)
 
         await this.updateTotalLikeCount(transactionalManager, post, 'decrement', userId)
       } catch (error) {
         throw new BadRequestException('Failed to update like')
       }
 
-      return { success: true, message: 'Likes Updated' }
+      return { success: true, message: 'Like removed' }
     })
   }
 }

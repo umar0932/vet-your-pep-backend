@@ -93,8 +93,7 @@ export class Channel extends CustomBaseEntity {
   @Field(() => [Events], { nullable: true })
   @OneToMany(() => Events, events => events.channel, {
     eager: true,
-    nullable: true,
-    cascade: true
+    nullable: true
   })
   events: Events[]
 

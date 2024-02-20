@@ -167,13 +167,8 @@ export class PostService {
   async createPost(createPostInput: CreatePostInput, userId: string): Promise<SuccessResponse> {
     const { channelId, ...rest } = createPostInput
 
-    let channel
-    const customer = await this.customerService.getCustomerById(userId)
-
-    if (channelId) channel = await this.channelService.getChannelById(channelId)
-
     const checkChannelMemberExist = await this.channelService.checkChannelMemberByIdExist(
-      channel.id,
+      channelId,
       userId
     )
     if (!checkChannelMemberExist) throw new BadRequestException('Only channel members can post')
@@ -181,8 +176,8 @@ export class PostService {
     try {
       await this.postRepository.save({
         ...rest,
-        channel: channel,
-        customer: { id: customer.id },
+        channel: { id: channelId },
+        customer: { id: userId },
         createdBy: userId
       })
     } catch (error) {
@@ -197,10 +192,7 @@ export class PostService {
 
     const post = await this.getPostById(postId, userId)
 
-    let channel
-    const customer = await this.customerService.getCustomerById(userId)
-
-    if (channelId) channel = await this.channelService.getChannelById(channelId)
+    const channel = await this.channelService.getChannelById(channelId)
 
     const checkChannelMemberExist = await this.channelService.checkChannelMemberByIdExist(
       channel.id,
@@ -212,7 +204,7 @@ export class PostService {
       await this.postRepository.update(post.id, {
         ...rest,
         channel: channel,
-        customer: { id: customer.id },
+        customer: { id: userId },
         updatedBy: userId,
         updatedDate: new Date()
       })

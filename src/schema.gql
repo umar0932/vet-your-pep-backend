@@ -212,7 +212,7 @@ input EventFilterInputs {
 }
 
 type Events {
-  channel: Channel
+  channel: Channel!
   createdBy: String
   createdDate: DateTime
   id: ID!
@@ -551,7 +551,6 @@ input UpdateEventInput {
 }
 
 input UpdateLikeInput {
-  likeId: ID!
   postId: String!
 }
 

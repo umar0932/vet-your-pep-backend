@@ -31,8 +31,11 @@ export class Events extends CustomBaseEntity {
 
   // Relations
 
-  @Field(() => Channel, { nullable: true })
-  @ManyToOne(() => Channel, channel => channel.posts, { nullable: true })
+  @Field(() => Channel)
+  @ManyToOne(() => Channel, channel => channel.posts, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
+  })
   @JoinColumn({ name: 'channel_id' })
   channel: Channel
 }
