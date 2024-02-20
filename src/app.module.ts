@@ -14,6 +14,7 @@ import { ChannelsModule } from '@app/channel'
 import { ChatModule } from '@app/chat'
 import { CommentModule } from '@app/comments'
 import { CustomerUserModule } from '@app/customer-user'
+import { EventModule } from '@app/events'
 import { LikeModule } from '@app/like'
 import { PaymentModule } from '@app/payment'
 import { PostModule } from '@app/post'
@@ -61,7 +62,8 @@ const env = `${process.env.NODE_ENV}`
     CommentModule,
     LikeModule,
     PaymentModule,
-    PostModule
+    PostModule,
+    EventModule
   ]
 })
 export class AppModule {}

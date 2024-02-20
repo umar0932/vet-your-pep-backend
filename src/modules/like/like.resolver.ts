@@ -15,24 +15,24 @@ export class LikeResolver {
   // Mutations
 
   @Mutation(() => SuccessResponse, {
-    description: 'This will create new Like'
+    description: 'This will create new Like on Post'
   })
   @Allow()
-  async createPostLike(
+  async likePost(
     @Args('input') createLikeInput: CreateLikeInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    return await this.likeService.createPostLike(createLikeInput, user.userId)
+    return await this.likeService.likePost(createLikeInput, user.userId)
   }
 
   @Mutation(() => SuccessResponse, {
-    description: 'This will update new Like'
+    description: 'This will unlike Post'
   })
   @Allow()
-  async updatePostLike(
+  async unlikePost(
     @Args('input') createLikeInput: UpdateLikeInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    return await this.likeService.updatePostLike(createLikeInput, user.userId)
+    return await this.likeService.unlikePost(createLikeInput, user.userId)
   }
 }

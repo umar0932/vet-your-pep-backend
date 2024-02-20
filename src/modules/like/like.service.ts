@@ -74,7 +74,7 @@ export class LikeService {
 
   // Resolver Mutation Methods
 
-  async createPostLike(createLikeInput: CreateLikeInput, userId: string): Promise<SuccessResponse> {
+  async likePost(createLikeInput: CreateLikeInput, userId: string): Promise<SuccessResponse> {
     return this.manager.transaction(async transactionalManager => {
       const { postId, ...rest } = createLikeInput
 
@@ -100,7 +100,7 @@ export class LikeService {
     })
   }
 
-  async updatePostLike(updateLikeInput: UpdateLikeInput, userId: string): Promise<SuccessResponse> {
+  async unlikePost(updateLikeInput: UpdateLikeInput, userId: string): Promise<SuccessResponse> {
     return this.manager.transaction(async transactionalManager => {
       const { postId, likeId, ...rest } = updateLikeInput
 

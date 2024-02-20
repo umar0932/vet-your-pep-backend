@@ -69,7 +69,7 @@ export class CustomerUserResolver {
   }
 
   @Query(() => [Customer], {
-    description: 'Get the followers of the authenticated customer'
+    description: 'Get the following of the authenticated customer'
   })
   @Allow()
   async getFollowing(@CurrentUser() user: JwtUserPayload): Promise<Customer[]> {
