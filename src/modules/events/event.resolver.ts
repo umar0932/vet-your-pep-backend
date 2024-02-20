@@ -10,7 +10,7 @@ import { EventService } from './event.service'
 
 @Resolver(() => Events)
 export class EventResolver {
-  constructor(private readonly postService: EventService) {}
+  constructor(private readonly eventService: EventService) {}
 
   // Queries
 
@@ -21,11 +21,11 @@ export class EventResolver {
   async getEventUploadUrls(
     @Args({ name: 'count', type: () => Number }) count: number
   ): Promise<S3SignedUrlResponse[]> {
-    return this.postService.getEventUploadUrls(count)
+    return this.eventService.getEventUploadUrls(count)
   }
 
   @Query(() => ListEventsResponse, {
-    description: 'The List of posts with Pagination and filters'
+    description: 'The List of events with Pagination and filters'
   })
   @Allow()
   async getEvents(
@@ -33,7 +33,7 @@ export class EventResolver {
     @CurrentUser() user: JwtUserPayload
   ): Promise<ListEventsResponse> {
     const { limit, offset, filter } = args
-    const [posts, count] = await this.postService.getEventsWithPagination(
+    const [events, count] = await this.eventService.getEventsWithPagination(
       {
         limit,
         offset,
@@ -41,7 +41,7 @@ export class EventResolver {
       },
       user
     )
-    return { results: posts, totalRows: count, limit, offset }
+    return { results: events, totalRows: count, limit, offset }
   }
 
   // Mutations
@@ -54,17 +54,17 @@ export class EventResolver {
     @Args('input') createEventInput: CreateEventInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    return await this.postService.createEvent(createEventInput, user)
+    return await this.eventService.createEvent(createEventInput, user)
   }
 
   @Mutation(() => SuccessResponse, {
-    description: 'This will update new Event'
+    description: 'This will update Event'
   })
   @Allow()
   async updateEvent(
     @Args('input') createEventInput: UpdateEventInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    return await this.postService.updateEvent(createEventInput, user)
+    return await this.eventService.updateEvent(createEventInput, user)
   }
 }

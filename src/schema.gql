@@ -123,6 +123,7 @@ input CreateCommentInput {
 }
 
 input CreateCustomerInput {
+  cellPhone: String
   email: String!
   firstName: String!
   lastName: String!
@@ -384,7 +385,7 @@ type Mutation {
   """This will update Customer Password"""
   updateCustomerPassword(password: String!): SuccessResponse!
 
-  """This will update new Event"""
+  """This will update Event"""
   updateEvent(input: UpdateEventInput!): SuccessResponse!
 
   """This will update new Post"""
@@ -451,7 +452,7 @@ type Query {
   """Get S3 bucket Signed Url"""
   getEventUploadUrls(count: Float!): [S3SignedUrlResponse!]!
 
-  """The List of posts with Pagination and filters"""
+  """The List of events with Pagination and filters"""
   getEvents(input: ListEventsInput!): ListEventsResponse!
 
   """Get the followers of the authenticated customer"""

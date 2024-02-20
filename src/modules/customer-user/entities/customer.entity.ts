@@ -90,12 +90,14 @@ export class Customer extends CustomBaseEntity {
 
   @Field(() => [CustomerFollower], { nullable: true })
   @OneToMany(() => CustomerFollower, (uf: CustomerFollower) => uf.followers, {
+    eager: true,
     nullable: true
   })
   followers?: CustomerFollower[]
 
   @Field(() => [CustomerFollower], { nullable: true })
   @OneToMany(() => CustomerFollower, (uf: CustomerFollower) => uf.following, {
+    eager: true,
     nullable: true
   })
   following?: CustomerFollower[]

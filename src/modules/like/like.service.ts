@@ -78,10 +78,9 @@ export class LikeService {
     return this.manager.transaction(async transactionalManager => {
       const { postId, ...rest } = createLikeInput
 
-      let post
       const customer = await this.customerService.getCustomerById(userId)
 
-      if (postId) post = await this.postService.findFromAllPost(postId)
+      const post = await this.postService.findFromAllPost(postId)
 
       try {
         await transactionalManager.save(Likes, {
@@ -106,10 +105,9 @@ export class LikeService {
 
       const like = await this.getLikeById(likeId)
 
-      let post
       const customer = await this.customerService.getCustomerById(userId)
 
-      if (postId) post = await this.postService.findFromAllPost(postId)
+      const post = await this.postService.findFromAllPost(postId)
 
       try {
         await transactionalManager.update(Likes, like.id, {
