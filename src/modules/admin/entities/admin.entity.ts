@@ -1,8 +1,9 @@
 import { ObjectType, Field, ID } from '@nestjs/graphql'
 
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
+import { PlatFormRules } from '@app/platform-rules/entities'
 
 @Entity({ name: 'admin_user' })
 @ObjectType()
@@ -39,4 +40,13 @@ export class Admin extends CustomBaseEntity {
   @Field(() => String, { nullable: true })
   @Column({ length: 250, nullable: true })
   profileImage?: string
+
+  // Relations
+
+  @Field(() => [PlatFormRules], { nullable: true })
+  @OneToMany(() => PlatFormRules, platFormRules => platFormRules.admin, {
+    eager: true,
+    nullable: true
+  })
+  platFormRules: PlatFormRules[]
 }

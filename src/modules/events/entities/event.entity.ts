@@ -9,9 +9,9 @@ import { CustomBaseEntity } from '@app/common/entities/base.entity'
 @ObjectType()
 export class Events extends CustomBaseEntity {
   // Primary key
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   @Field(() => ID)
-  id!: number
+  id!: string
 
   // Complusory Variables
 

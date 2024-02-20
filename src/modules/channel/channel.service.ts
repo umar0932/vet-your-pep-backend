@@ -143,19 +143,19 @@ export class ChannelService {
     if (type === JWT_STRATEGY_NAME.ADMIN) await this.adminService.getAdminById(userId)
 
     try {
-      const queryBuilder = await this.channelsRepository.createQueryBuilder('channels')
+      const queryBuilder = this.channelsRepository.createQueryBuilder('channels')
 
-      title && (await queryBuilder.andWhere('channels.title = :title', { title }))
+      title && queryBuilder.andWhere('channels.title = :title', { title })
 
       if (search) {
-        await queryBuilder.andWhere(
+        queryBuilder.andWhere(
           new Brackets(qb => {
             qb.where('LOWER(channels.title) LIKE LOWER(:search)', { search: `%${search}%` })
           })
         )
       }
 
-      await queryBuilder
+      queryBuilder
         .take(limit)
         .skip(offset)
         .leftJoinAndSelect('channels.moderator', 'moderator')
@@ -171,7 +171,7 @@ export class ChannelService {
 
       if (type === JWT_STRATEGY_NAME.CUSTOMER) {
         if (joined) {
-          await queryBuilder.where('customer.id = :userId', { userId })
+          queryBuilder.where('customer.id = :userId', { userId })
         } else {
           const subQueryBuilder = this.manager
             .createQueryBuilder(Channel, 'channels')
@@ -179,7 +179,7 @@ export class ChannelService {
             .andWhere('cm.customer.id = :userId', { userId })
             .select('channels.id')
 
-          await queryBuilder
+          queryBuilder
             .andWhere('channels.id NOT IN (' + subQueryBuilder.getQuery() + ')')
             .setParameters(subQueryBuilder.getParameters())
         }
@@ -197,10 +197,11 @@ export class ChannelService {
 
   async createChannel(
     createChannelInput: CreateChannelInput,
-    userId: string
+    user: JwtUserPayload
   ): Promise<SuccessResponse> {
+    await this.adminService.adminOnlyAccess(user.type)
     return this.manager.transaction(async transactionalManager => {
-      // await this.adminService.getAdminById(userId)
+      const { userId } = user
       const { title, moderatorId, status, totalPrice, ...rest } = createChannelInput
 
       const moderator = await this.customerService.getCustomerById(moderatorId)

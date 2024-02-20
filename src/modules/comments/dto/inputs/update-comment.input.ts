@@ -1,5 +1,5 @@
 import { InputType, Field, PickType, ID } from '@nestjs/graphql'
-import { IsNotEmpty, IsNumber } from 'class-validator'
+import { IsNotEmpty, IsString } from 'class-validator'
 
 import { CreateCommentInput } from './create-comment.input'
 
@@ -7,6 +7,6 @@ import { CreateCommentInput } from './create-comment.input'
 export class UpdateCommentInput extends PickType(CreateCommentInput, ['content', 'postId']) {
   @Field(() => ID)
   @IsNotEmpty({ message: 'Comments ID cannot be empty' })
-  @IsNumber({}, { message: 'Channel Price price must be a number' })
-  commentId!: number
+  @IsString({ message: 'Comments ID must be a string' })
+  commentId!: string
 }

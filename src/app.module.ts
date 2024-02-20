@@ -17,6 +17,7 @@ import { CustomerUserModule } from '@app/customer-user'
 import { EventModule } from '@app/events'
 import { LikeModule } from '@app/like'
 import { PaymentModule } from '@app/payment'
+import { PlatFormRulesModule } from '@app/platform-rules'
 import { PostModule } from '@app/post'
 
 import { dataSourceOptions } from 'db/data-source'
@@ -63,7 +64,8 @@ const env = `${process.env.NODE_ENV}`
     LikeModule,
     PaymentModule,
     PostModule,
-    EventModule
+    EventModule,
+    PlatFormRulesModule
   ]
 })
 export class AppModule {}

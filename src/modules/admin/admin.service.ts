@@ -1,4 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common'
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
 import { JwtService } from '@nestjs/jwt'
@@ -30,9 +35,13 @@ export class AdminService {
 
   // Public Methods
 
+  async adminOnlyAccess(userType: string): Promise<void> {
+    if (userType !== JWT_STRATEGY_NAME.ADMIN) throw new ForbiddenException('Only Admins Access')
+  }
+
   async getAdminById(id: string): Promise<Admin> {
     const findAdminById = await this.adminRepository.findOne({ where: { id } })
-    if (!findAdminById) throw new ForbiddenException('Invalid Admin user')
+    if (!findAdminById) throw new NotFoundException('Invalid Admin user')
 
     return findAdminById
   }

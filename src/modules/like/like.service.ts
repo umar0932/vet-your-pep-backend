@@ -52,7 +52,7 @@ export class LikeService {
 
   // Public Methods
 
-  async getLikeById(id: number): Promise<Likes> {
+  async getLikeById(id: string): Promise<Likes> {
     const findLikes = await this.likeRepository.findOne({
       where: { id }
     })
@@ -61,7 +61,7 @@ export class LikeService {
     return findLikes
   }
 
-  async findFromAllLike(id: number): Promise<Likes> {
+  async findFromAllLike(id: string): Promise<Likes> {
     const findLikes = await this.likeRepository.findOne({
       where: { id }
     })

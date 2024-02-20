@@ -10,9 +10,9 @@ import { Customer } from './customer.entity'
 @ObjectType()
 export class CustomerFollower extends CustomBaseEntity {
   // Primary key
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   @Field(() => ID)
-  id: number
+  id: string
 
   // Relations
 

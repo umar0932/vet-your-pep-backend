@@ -25,7 +25,7 @@ export class CommentService {
   // Private Methods
 
   // Public Methods
-  async getCommentsById(id: number, postId: string): Promise<Comments> {
+  async getCommentsById(id: string, postId: string): Promise<Comments> {
     const findComments = await this.commentRepository.findOne({
       where: { id, post: { id: postId } }
     })

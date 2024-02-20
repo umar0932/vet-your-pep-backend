@@ -61,7 +61,7 @@ export class ChannelResolver {
     @Args('input') createChannelInput: CreateChannelInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    return await this.channelsService.createChannel(createChannelInput, user.userId)
+    return await this.channelsService.createChannel(createChannelInput, user)
   }
 
   @Mutation(() => SuccessResponse, {

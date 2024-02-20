@@ -11,6 +11,7 @@ type Admin {
   isActive: Boolean
   lastName: String!
   password: String!
+  platFormRules: [PlatFormRules!]
   profileImage: String
   updatedBy: String
   updatedDate: DateTime
@@ -139,6 +140,11 @@ input CreateEventInput {
 
 input CreateLikeInput {
   postId: String!
+}
+
+input CreatePlatFormRulesInput {
+  rules: String
+  title: String!
 }
 
 input CreatePostInput {
@@ -286,6 +292,19 @@ type ListEventsResponse {
   totalRows: Float
 }
 
+input ListPlatFormRulesInput {
+  filter: PlatFormRulesFilterInputs
+  limit: Float!
+  offset: Float = 0
+}
+
+type ListPlatFormRulesResponse {
+  limit: Float!
+  offset: Float
+  results: [PlatFormRules!]!
+  totalRows: Float
+}
+
 input ListPostsInput {
   customerId: String
   filter: PostFilterInputs
@@ -330,6 +349,9 @@ type Mutation {
 
   """This will create new Event"""
   createEvent(input: CreateEventInput!): SuccessResponse!
+
+  """Create new plate form rules"""
+  createPlatFormRule(input: CreatePlatFormRulesInput!): PlatFormRules!
 
   """This will create new Post"""
   createPost(input: CreatePostInput!): SuccessResponse!
@@ -388,6 +410,9 @@ type Mutation {
   """This will update Event"""
   updateEvent(input: UpdateEventInput!): SuccessResponse!
 
+  """This will update Event"""
+  updatePlatFormRule(input: UpdatePlatFormRulesInput!): PlatFormRules!
+
   """This will update new Post"""
   updatePost(input: UpdatePostInput!): SuccessResponse!
 }
@@ -405,6 +430,22 @@ type PageData {
 
 type PartialEventResponse {
   results: [Events!]!
+}
+
+type PlatFormRules {
+  admin: Admin!
+  createdBy: String
+  createdDate: DateTime
+  id: ID!
+  rules: String!
+  title: String!
+  updatedBy: String
+  updatedDate: DateTime
+}
+
+input PlatFormRulesFilterInputs {
+  search: String
+  title: String
 }
 
 type Post {
@@ -470,6 +511,9 @@ type Query {
 
   """Get other Customer Data"""
   getOtherCustomerData(customerId: String!): OtherCustomerDataResponse!
+
+  """The List of PlatForm rules Pagination and filters"""
+  getPlatFormRules(input: ListPlatFormRulesInput!): ListPlatFormRulesResponse!
 
   """Get S3 bucket Signed Url"""
   getPostUploadUrls(count: Float!): [S3SignedUrlResponse!]!
@@ -559,6 +603,12 @@ input UpdateEventInput {
 
 input UpdateLikeInput {
   postId: String!
+}
+
+input UpdatePlatFormRulesInput {
+  platFormRulesId: ID!
+  rules: String
+  title: String!
 }
 
 input UpdatePostInput {

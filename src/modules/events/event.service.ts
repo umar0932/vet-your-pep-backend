@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm'
 
@@ -16,7 +11,7 @@ import { AdminService } from '@app/admin'
 import { AwsS3ClientService } from '@app/aws-s3-client'
 import { ChannelService } from '@app/channel'
 import { CustomerUserService } from '@app/customer-user'
-import { JWT_STRATEGY_NAME, JwtUserPayload, SuccessResponse } from '@app/common'
+import { JwtUserPayload, SuccessResponse } from '@app/common'
 import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
 import { CreateEventInput, ListEventsInput, UpdateEventInput } from './dto/inputs'
@@ -40,7 +35,7 @@ export class EventService {
 
   // Public Methods
 
-  async getEventById(id: number, userId: string): Promise<Events> {
+  async getEventById(id: string, userId: string): Promise<Events> {
     const findEvents = await this.eventRepository.findOne({
       where: { id, createdBy: userId }
     })
@@ -55,7 +50,7 @@ export class EventService {
     return false
   }
 
-  async findFromAllEvent(id: number): Promise<Events> {
+  async findFromAllEvent(id: string): Promise<Events> {
     const findEvents = await this.eventRepository.findOne({
       where: { id }
     })
@@ -103,7 +98,7 @@ export class EventService {
     { limit, offset, filter }: ListEventsInput,
     user: JwtUserPayload
   ): Promise<[Events[], number]> {
-    if (user.type !== JWT_STRATEGY_NAME.ADMIN) throw new ForbiddenException('Only Admins Access')
+    await this.adminService.adminOnlyAccess(user.type)
     const { search } = filter || {}
 
     try {
@@ -133,7 +128,7 @@ export class EventService {
     createEventInput: CreateEventInput,
     user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    if (user.type !== JWT_STRATEGY_NAME.ADMIN) throw new ForbiddenException('Only Admins Access')
+    await this.adminService.adminOnlyAccess(user.type)
     const { channelId, title, ...rest } = createEventInput
 
     const channel = await this.channelService.getChannelById(channelId)
@@ -159,7 +154,7 @@ export class EventService {
     updateEventInput: UpdateEventInput,
     user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    if (user.type !== JWT_STRATEGY_NAME.ADMIN) throw new ForbiddenException('Only Admins Access')
+    await this.adminService.adminOnlyAccess(user.type)
     const { channelId, eventId, title, ...rest } = updateEventInput
 
     await this.getEventById(eventId, user.userId)

@@ -89,17 +89,17 @@ export class PostService {
     if (type === JWT_STRATEGY_NAME.ADMIN) await this.adminService.getAdminById(userId)
 
     try {
-      const queryBuilder = await this.postRepository.createQueryBuilder('posts')
+      const queryBuilder = this.postRepository.createQueryBuilder('posts')
 
       if (search) {
-        await queryBuilder.andWhere(
+        queryBuilder.andWhere(
           new Brackets(qb => {
             qb.where('LOWER(posts.body) LIKE LOWER(:search)', { search: `%${search}%` })
           })
         )
       }
 
-      await queryBuilder
+      queryBuilder
         .take(limit)
         .skip(offset)
         .leftJoinAndSelect('posts.likes', 'likes')
@@ -171,6 +171,7 @@ export class PostService {
       channelId,
       userId
     )
+
     if (!checkChannelMemberExist) throw new BadRequestException('Only channel members can post')
 
     try {

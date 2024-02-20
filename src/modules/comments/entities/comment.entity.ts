@@ -10,9 +10,9 @@ import { Post } from '@app/post/entities'
 @ObjectType()
 export class Comments extends CustomBaseEntity {
   // Primary key
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   @Field(() => ID)
-  id!: number
+  id!: string
 
   // Complusory Variables
 

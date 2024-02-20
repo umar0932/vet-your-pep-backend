@@ -1,5 +1,5 @@
 import { InputType, Field, PickType, ID } from '@nestjs/graphql'
-import { IsNotEmpty, IsNumber } from 'class-validator'
+import { IsNotEmpty, IsString } from 'class-validator'
 
 import { CreateEventInput } from './create-event.input'
 
@@ -12,6 +12,6 @@ export class UpdateEventInput extends PickType(CreateEventInput, [
 ]) {
   @Field(() => ID)
   @IsNotEmpty({ message: 'Event ID cannot be empty' })
-  @IsNumber({}, { message: 'Channel Price price must be a number' })
-  eventId!: number
+  @IsString({ message: 'Event ID must be a string' })
+  eventId!: string
 }
