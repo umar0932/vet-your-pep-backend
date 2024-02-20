@@ -93,35 +93,34 @@ export class CustomerUserService {
   }
 
   private async updateFollowerCounts(
-    followerId: string,
-    following: Customer,
+    transactionalManager: EntityManager,
+    currentUserId: string,
+    userToFollow: Customer,
     method: string
   ): Promise<void> {
-    return this.entityManager.transaction(async transactionalManager => {
-      const follower = await this.getCustomerById(followerId)
-      try {
-        const { totalFollowers } = following
-        const { totalFollowings } = follower
+    const currentUserFollowing = await this.getCustomerById(currentUserId)
+    try {
+      const { totalFollowers } = userToFollow
+      const { totalFollowings } = currentUserFollowing
 
-        if (method === 'follow') {
-          await transactionalManager.update(Customer, follower.id, {
-            totalFollowers: Number(totalFollowers || 0) + 1
-          })
-          await transactionalManager.update(Customer, following.id, {
-            totalFollowings: Number(totalFollowings || 0) + 1
-          })
-        } else if (method === 'unfollow') {
-          await transactionalManager.update(Customer, follower.id, {
-            totalFollowers: Math.max(Number(totalFollowers || 0) - 1, 0)
-          })
-          await transactionalManager.update(Customer, following.id, {
-            totalFollowings: Math.max(Number(totalFollowings || 0) - 1, 0)
-          })
-        } else throw new BadRequestException('Invalid method.')
-      } catch (error) {
-        throw new BadRequestException('Error updating follower counts.')
-      }
-    })
+      if (method === 'follow') {
+        await transactionalManager.update(Customer, userToFollow.id, {
+          totalFollowers: Number(totalFollowers || 0) + 1
+        })
+        await transactionalManager.update(Customer, currentUserFollowing.id, {
+          totalFollowings: Number(totalFollowings || 0) + 1
+        })
+      } else if (method === 'unfollow') {
+        await transactionalManager.update(Customer, userToFollow.id, {
+          totalFollowers: Math.max(Number(totalFollowers || 0) - 1, 0)
+        })
+        await transactionalManager.update(Customer, currentUserFollowing.id, {
+          totalFollowings: Math.max(Number(totalFollowings || 0) - 1, 0)
+        })
+      } else throw new BadRequestException('Invalid method.')
+    } catch (error) {
+      throw new BadRequestException('Error updating following counts.')
+    }
   }
 
   // Public Methods
@@ -291,19 +290,27 @@ export class CustomerUserService {
   }
 
   async getFollowers(customerId: string): Promise<Customer[]> {
-    const followers = await this.customerFollowerRepository.find({
-      where: { following: { id: customerId } },
-      relations: ['followers']
-    })
-    return followers.map(follower => follower.followers)
+    try {
+      const followers = await this.customerFollowerRepository.find({
+        where: { following: { id: customerId } },
+        relations: ['followers']
+      })
+      return followers.map(follower => follower.followers)
+    } catch (error) {
+      throw new BadRequestException('Failed to find Users')
+    }
   }
 
   async getFollowing(customerId: string): Promise<Customer[]> {
-    const following = await this.customerFollowerRepository.find({
-      where: { followers: { id: customerId } },
-      relations: ['following']
-    })
-    return following.map(followTo => followTo.following)
+    try {
+      const following = await this.customerFollowerRepository.find({
+        where: { followers: { id: customerId } },
+        relations: ['following'] // Include the 'following' relation to fetch the user data
+      })
+      return following.map(followTo => followTo.following)
+    } catch (error) {
+      throw new BadRequestException('Failed to find Users')
+    }
   }
 
   async isFollowing(currentUserId: string, otherCustomerId: string): Promise<boolean> {
@@ -414,26 +421,23 @@ export class CustomerUserService {
     return this.handleCustomerLogin(currentUser)
   }
 
-  async followCustomer(followerId: string, followingId: string): Promise<SuccessResponse> {
-    const following = await this.getCustomerById(followingId)
+  async followCustomer(currentUserId: string, customerId: string): Promise<SuccessResponse> {
+    const userToFollow = await this.getCustomerById(customerId)
 
-    const follower = await this.customerFollowerRepository.findOne({
-      where: {
-        followers: { id: followerId },
-        following: { id: followingId }
-      }
+    const checkFollowerExistbyId = await this.isFollowing(currentUserId, customerId)
+
+    if (checkFollowerExistbyId) throw new BadRequestException('Already following.')
+
+    return this.entityManager.transaction(async transactionalManager => {
+      await transactionalManager.save(CustomerFollower, {
+        followers: { id: currentUserId },
+        following: { id: customerId }
+      })
+
+      await this.updateFollowerCounts(transactionalManager, currentUserId, userToFollow, 'follow')
+
+      return { success: true, message: 'Following successfully' }
     })
-
-    if (follower) throw new BadRequestException('Already following.')
-
-    await this.customerFollowerRepository.save({
-      followers: { id: followerId },
-      following: following
-    })
-
-    await this.updateFollowerCounts(followerId, following, 'follow')
-
-    return { success: true, message: 'Following successfully' }
   }
 
   async saveMediaUrl(userId: string, fileName: string): Promise<boolean> {
@@ -448,23 +452,21 @@ export class CustomerUserService {
     return false
   }
 
-  async unfollowCustomer(followerId: string, followingId: string): Promise<SuccessResponse> {
-    const following = await this.getCustomerById(followingId)
+  async unfollowCustomer(currentUserId: string, otherCustomerId: string): Promise<SuccessResponse> {
+    const userToFollow = await this.getCustomerById(otherCustomerId)
 
-    const follower = await this.customerFollowerRepository.findOne({
-      where: {
-        followers: { id: followerId },
-        following: { id: followingId }
-      }
+    const followRelationship = await this.customerFollowerRepository.findOne({
+      where: { followers: { id: currentUserId }, following: { id: otherCustomerId } }
     })
 
-    if (!follower) throw new NotFoundException('Not following.')
+    if (!followRelationship) throw new NotFoundException('Not following.')
+    return this.entityManager.transaction(async transactionalManager => {
+      await transactionalManager.remove(followRelationship)
 
-    await this.customerFollowerRepository.remove(follower)
+      await this.updateFollowerCounts(transactionalManager, currentUserId, userToFollow, 'unfollow')
 
-    // Update counts
-    await this.updateFollowerCounts(followerId, following, 'unfollow')
-    return { success: true, message: 'Unfollowed successfully' }
+      return { success: true, message: 'Unfollowed successfully' }
+    })
   }
 
   async updateCustomerData(
