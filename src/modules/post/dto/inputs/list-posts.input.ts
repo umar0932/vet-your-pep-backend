@@ -24,7 +24,7 @@ export class ListPostsInput {
   @Field({ name: 'offset', nullable: true, defaultValue: 0 })
   offset: number
 
-  @Field(() => Boolean, { nullable: true, defaultValue: true })
+  @Field(() => Boolean, { nullable: true, defaultValue: false })
   @IsOptional()
   userFeed?: boolean
 }

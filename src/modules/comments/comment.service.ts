@@ -46,17 +46,17 @@ export class CommentService {
     if (type === JWT_STRATEGY_NAME.ADMIN) await this.adminService.getAdminById(userId)
 
     try {
-      const queryBuilder = await this.commentRepository.createQueryBuilder('comments')
+      const queryBuilder = this.commentRepository.createQueryBuilder('comments')
 
       if (search) {
-        await queryBuilder.andWhere(
+        queryBuilder.andWhere(
           new Brackets(qb => {
             qb.where('LOWER(comments.contennt) LIKE LOWER(:search)', { search: `%${search}%` })
           })
         )
       }
 
-      await queryBuilder
+      queryBuilder
         .take(limit)
         .skip(offset)
         .leftJoinAndSelect('comments.post', 'post')

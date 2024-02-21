@@ -228,7 +228,7 @@ export class CustomerUserService {
     const { email, search } = filter || {}
 
     try {
-      const queryBuilder = await this.customerRepository.createQueryBuilder('customer_user')
+      const queryBuilder = this.customerRepository.createQueryBuilder('customer_user')
 
       email && queryBuilder.andWhere('customer_user.email = :email', { email })
 
@@ -322,7 +322,7 @@ export class CustomerUserService {
 
   async searchCustomers(search: string): Promise<[Customer[], number]> {
     try {
-      const queryBuilder = await this.customerRepository.createQueryBuilder('customer_user')
+      const queryBuilder = this.customerRepository.createQueryBuilder('customer_user')
 
       if (search) {
         queryBuilder.andWhere(

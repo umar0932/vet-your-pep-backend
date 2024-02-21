@@ -86,8 +86,6 @@ export class PostService {
     const { search } = filter || {}
     const { userId, type } = user || {}
 
-    if (type === JWT_STRATEGY_NAME.ADMIN) await this.adminService.getAdminById(userId)
-
     try {
       const queryBuilder = this.postRepository.createQueryBuilder('posts')
 
@@ -105,32 +103,12 @@ export class PostService {
         .leftJoinAndSelect('posts.likes', 'likes')
         .leftJoinAndSelect('posts.customer', 'customer')
         .leftJoinAndSelect('posts.comments', 'comments')
+        .leftJoinAndSelect('posts.channel', 'channel')
+        .orderBy('posts.createdDate', 'DESC')
 
       if (type === JWT_STRATEGY_NAME.CUSTOMER) {
         if (userFeed) {
-          const channelQueryBuilder = await this.channelService.channelQuerBuilder()
-          const commonChannelsSubQuery = channelQueryBuilder
-            .innerJoin('channels.members', 'cm1')
-            .innerJoin(
-              'channels.members',
-              'cm2',
-              'cm1.customer.id = :userId AND cm2.customer.id <> :userId',
-              { userId }
-            )
-            .select('channels.id')
-
-          queryBuilder
-            .innerJoin('posts.channel', 'postChannel')
-            .innerJoin('postChannel.members', 'postChannelMember')
-            .andWhere(
-              '(postChannelMember.customerId = :userId OR postChannelMember.customerId IN (' +
-                commonChannelsSubQuery.getQuery() +
-                '))'
-            )
-            .setParameters({
-              ...commonChannelsSubQuery.getParameters(),
-              userId: userId
-            })
+          queryBuilder.innerJoin('channel.members', 'cm', 'cm.customer.id = :userId', { userId })
         } else if (myPosts) {
           queryBuilder.where('customer.id = :userId', { userId })
         } else if (customerId) {
@@ -152,13 +130,15 @@ export class PostService {
             })
             .andWhere('postChannel.id IN (' + commonChannelsSubQuery.getQuery() + ')')
             .setParameters(commonChannelsSubQuery.getParameters())
+        } else {
+          await this.adminService.adminOnlyAccess(type)
         }
       }
-      const [channels, total] = await queryBuilder.getManyAndCount()
+      const [posts, total] = await queryBuilder.getManyAndCount()
 
-      return [channels, total, limit, offset]
+      return [posts, total, limit, offset]
     } catch (error) {
-      throw new BadRequestException('Failed to find Channel')
+      throw new BadRequestException('Failed to find Post')
     }
   }
 

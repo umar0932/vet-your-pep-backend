@@ -64,16 +64,16 @@ export class CustomerUserResolver {
     description: 'Get the followers of the authenticated customer'
   })
   @Allow()
-  async getFollowers(@CurrentUser() user: JwtUserPayload): Promise<Customer[]> {
-    return this.customerUserService.getFollowers(user.userId)
+  async getFollowers(@Args('customerId') customerId: string): Promise<Customer[]> {
+    return this.customerUserService.getFollowers(customerId)
   }
 
   @Query(() => [Customer], {
     description: 'Get the following of the authenticated customer'
   })
   @Allow()
-  async getFollowing(@CurrentUser() user: JwtUserPayload): Promise<Customer[]> {
-    return this.customerUserService.getFollowing(user.userId)
+  async getFollowing(@Args('customerId') customerId: string): Promise<Customer[]> {
+    return this.customerUserService.getFollowing(customerId)
   }
 
   @Query(() => OtherCustomerDataResponse, { description: 'Get other Customer Data' })

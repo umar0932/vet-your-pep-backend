@@ -311,7 +311,7 @@ input ListPostsInput {
   limit: Float!
   myPosts: Boolean = false
   offset: Float = 0
-  userFeed: Boolean = true
+  userFeed: Boolean = false
 }
 
 type ListPostsResponse {
@@ -504,10 +504,10 @@ type Query {
   getEventsByChannel(channelId: String!): PartialEventResponse!
 
   """Get the followers of the authenticated customer"""
-  getFollowers: [Customer!]!
+  getFollowers(customerId: String!): [Customer!]!
 
   """Get the following of the authenticated customer"""
-  getFollowing: [Customer!]!
+  getFollowing(customerId: String!): [Customer!]!
 
   """Get other Customer Data"""
   getOtherCustomerData(customerId: String!): OtherCustomerDataResponse!

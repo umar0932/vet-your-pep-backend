@@ -29,10 +29,13 @@ export class PostResolver {
   })
   @Allow()
   async getPosts(
-    @Args('input') args: ListPostsInput,
+    @Args('input') listPostsInput: ListPostsInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<ListPostsResponse> {
-    const [posts, count, limit, offset] = await this.postService.getPostsWithPagination(args, user)
+    const [posts, count, limit, offset] = await this.postService.getPostsWithPagination(
+      listPostsInput,
+      user
+    )
     return { results: posts, totalRows: count, limit, offset }
   }
 
