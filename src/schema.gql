@@ -367,7 +367,7 @@ type Mutation {
   leaveChannel(input: UpdateChannelInput!): SuccessResponse!
 
   """This will create new Like on Post"""
-  likePost(input: CreateLikeInput!): SuccessResponse!
+  likePost(input: CreateLikeInput!): Likes!
 
   """Admin Login"""
   loginAsAdmin(input: LoginAdminInput!): AdminLoginResponse!
@@ -385,7 +385,7 @@ type Mutation {
   unfollowCustomer(customerId: String!): SuccessResponse!
 
   """This will unlike Post"""
-  unlikePost(input: UpdateLikeInput!): SuccessResponse!
+  unlikePost(input: UpdateLikeInput!): Likes!
 
   """Update admin data"""
   updateAdminData(input: UpdateAdminUserInput!): String!

@@ -6,7 +6,6 @@ import { EntityManager, Repository } from 'typeorm'
 import { CustomerUserService } from '@app/customer-user'
 import { Post } from '@app/post/entities'
 import { PostService } from '@app/post'
-import { SuccessResponse } from '@app/common'
 
 import { CreateLikeInput, UpdateLikeInput } from './dto/inputs'
 import { Likes } from './entities'
@@ -74,7 +73,7 @@ export class LikeService {
 
   // Resolver Mutation Methods
 
-  async likePost(createLikeInput: CreateLikeInput, userId: string): Promise<SuccessResponse> {
+  async likePost(createLikeInput: CreateLikeInput, userId: string): Promise<Partial<Likes>> {
     return this.manager.transaction(async transactionalManager => {
       const { postId, ...rest } = createLikeInput
 
@@ -84,7 +83,7 @@ export class LikeService {
       if (alreadyLiked) throw new BadRequestException('User has already liked this post')
 
       try {
-        await transactionalManager.save(Likes, {
+        const likes = await transactionalManager.save(Likes, {
           ...rest,
           post: post,
           user: { id: userId },
@@ -92,15 +91,15 @@ export class LikeService {
         })
 
         await this.updateTotalLikeCount(transactionalManager, post, 'increment', userId)
+
+        return likes
       } catch (error) {
         throw new BadRequestException('Failed to create like')
       }
-
-      return { success: true, message: 'Like Created' }
     })
   }
 
-  async unlikePost(updateLikeInput: UpdateLikeInput, userId: string): Promise<SuccessResponse> {
+  async unlikePost(updateLikeInput: UpdateLikeInput, userId: string): Promise<Partial<Likes>> {
     return this.manager.transaction(async transactionalManager => {
       const { postId } = updateLikeInput
 
@@ -120,11 +119,11 @@ export class LikeService {
         await transactionalManager.remove(existingLike)
 
         await this.updateTotalLikeCount(transactionalManager, post, 'decrement', userId)
+
+        return await this.getLikeById(existingLike.id)
       } catch (error) {
         throw new BadRequestException('Failed to update like')
       }
-
-      return { success: true, message: 'Like removed' }
     })
   }
 }

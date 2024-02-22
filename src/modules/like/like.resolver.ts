@@ -1,6 +1,6 @@
 import { Resolver, Mutation, Args } from '@nestjs/graphql'
 
-import { Allow, CurrentUser, JwtUserPayload, SuccessResponse } from '@app/common'
+import { Allow, CurrentUser, JwtUserPayload } from '@app/common'
 
 import { CreateLikeInput, UpdateLikeInput } from './dto/inputs'
 import { Likes } from './entities'
@@ -14,25 +14,25 @@ export class LikeResolver {
 
   // Mutations
 
-  @Mutation(() => SuccessResponse, {
+  @Mutation(() => Likes, {
     description: 'This will create new Like on Post'
   })
   @Allow()
   async likePost(
     @Args('input') createLikeInput: CreateLikeInput,
     @CurrentUser() user: JwtUserPayload
-  ): Promise<SuccessResponse> {
+  ): Promise<Partial<Likes>> {
     return await this.likeService.likePost(createLikeInput, user.userId)
   }
 
-  @Mutation(() => SuccessResponse, {
+  @Mutation(() => Likes, {
     description: 'This will unlike Post'
   })
   @Allow()
   async unlikePost(
     @Args('input') createLikeInput: UpdateLikeInput,
     @CurrentUser() user: JwtUserPayload
-  ): Promise<SuccessResponse> {
+  ): Promise<Partial<Likes>> {
     return await this.likeService.unlikePost(createLikeInput, user.userId)
   }
 }
