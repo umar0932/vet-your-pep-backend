@@ -101,6 +101,8 @@ export class PostService {
         .leftJoinAndSelect('posts.likes', 'likes')
         .leftJoinAndSelect('posts.customer', 'customer')
         .leftJoinAndSelect('posts.comments', 'comments')
+        .leftJoinAndSelect('comments.user', 'userComments')
+        .leftJoinAndSelect('likes.user', 'userlikes')
         .leftJoinAndSelect('posts.channel', 'channel')
         .orderBy('posts.createdDate', 'DESC')
         .take(limit)

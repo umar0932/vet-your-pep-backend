@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm'
 
@@ -15,7 +15,12 @@ import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
 import { ChannelMember, Channel } from './entities'
 import { ChannelUserRole, ChannelStatus } from './channel.constants'
-import { CreateChannelInput, ListChannelsInput, UpdateChannelInput } from './dto/inputs'
+import {
+  CreateChannelInput,
+  LeaveChannelInput,
+  ListChannelsInput,
+  UpdateChannelInput
+} from './dto/inputs'
 
 @Injectable()
 export class ChannelService {
@@ -93,9 +98,9 @@ export class ChannelService {
     return false
   }
 
-  async getChannelMemberById(channel: Channel, userId: string): Promise<ChannelMember> {
+  async getChannelMemberById(channelId: string, userId: string): Promise<ChannelMember> {
     const isChannelMember = await this.channelMemberRepository.findOne({
-      where: { channel, customer: { id: userId } }
+      where: { channel: { id: channelId }, customer: { id: userId } }
     })
     if (!isChannelMember)
       throw new BadRequestException('Channel Member with the provided ID does not exist')
@@ -282,6 +287,7 @@ export class ChannelService {
     let channel
     if (type === JWT_STRATEGY_NAME.CUSTOMER)
       channel = await this.getChannelByModeratorId(id, userId)
+    else channel = await this.getChannelById(id)
 
     const channelByName = await this.getChannelsByName(title)
     if (channelByName) throw new BadRequestException('Same Channel Name already exists')
@@ -301,30 +307,35 @@ export class ChannelService {
   }
 
   async leaveChannel(
-    updateChannelInput: UpdateChannelInput,
+    leaveChannelInput: LeaveChannelInput,
     user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    const { id, title, ...rest } = updateChannelInput
-    const { userId, type } = user || {}
+    return this.manager.transaction(async transactionalManager => {
+      const { channelId, customerId } = leaveChannelInput || {}
+      const { userId, type } = user || {}
 
-    let channel
-    if (type === JWT_STRATEGY_NAME.CUSTOMER)
-      channel = await this.getChannelByModeratorId(id, userId)
+      try {
+        if (type === JWT_STRATEGY_NAME.CUSTOMER) {
+          const channelModerator = await this.getChannelByModeratorId(channelId, userId)
+          if (channelModerator)
+            throw new ForbiddenException('Moderators can not leave the channel.')
+        }
 
-    const channelByName = await this.getChannelsByName(title)
-    if (channelByName) throw new BadRequestException('Same Channel Name already exists')
+        const channel = await this.getChannelById(channelId)
 
-    try {
-      await this.channelsRepository.update(channel.id, {
-        ...rest,
-        title,
-        updatedBy: userId,
-        updatedDate: new Date()
-      })
-    } catch (error) {
-      throw new BadRequestException('Failed to update Channel')
-    }
+        let channelMember
+        if (type === JWT_STRATEGY_NAME.ADMIN && customerId) {
+          channelMember = await this.getChannelMemberById(channel.id, customerId)
+        } else if (type === JWT_STRATEGY_NAME.CUSTOMER) {
+          channelMember = await this.getChannelMemberById(channel.id, userId)
+        }
+        await transactionalManager.delete(ChannelMember, channelMember.id)
+        await this.updateTotalMembersCount(transactionalManager, channel, 'decrement', userId)
 
-    return { success: true, message: 'Channel updated' }
+        return { success: true, message: 'User left the channel.' }
+      } catch (error) {
+        throw new BadRequestException('Failed to leave the channel.')
+      }
+    })
   }
 }

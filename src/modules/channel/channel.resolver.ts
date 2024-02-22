@@ -5,7 +5,12 @@ import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
 import { Channel } from './entities'
 import { ChannelService } from './channel.service'
-import { CreateChannelInput, ListChannelsInput, UpdateChannelInput } from './dto/inputs'
+import {
+  CreateChannelInput,
+  LeaveChannelInput,
+  ListChannelsInput,
+  UpdateChannelInput
+} from './dto/inputs'
 import { ListChannelsResponse } from './dto/args'
 
 @Resolver(() => Channel)
@@ -87,13 +92,13 @@ export class ChannelResolver {
   }
 
   @Mutation(() => SuccessResponse, {
-    description: 'This will create new Channel'
+    description: 'Leave Channel'
   })
   @Allow()
   async leaveChannel(
-    @Args('input') updateChannelInput: UpdateChannelInput,
+    @Args('input') leaveChannelInput: LeaveChannelInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    return await this.channelsService.leaveChannel(updateChannelInput, user)
+    return await this.channelsService.leaveChannel(leaveChannelInput, user)
   }
 }

@@ -8,11 +8,13 @@ export class CreateEventsTable1708405522839 implements MigrationInterface {
       `CREATE TABLE "events" (
         "id" SERIAL NOT NULL, "text" text NOT NULL DEFAULT '',
         "title" character varying(50) NOT NULL,
-        "images" text, "channel_id" uuid, CONSTRAINT "UQ_bab6cf3a1e33e6790e9b9bd7d1d" UNIQUE ("title"),
+        "images" text,
+        "channel_id" uuid,
         "created_by" character varying(50) NOT NULL DEFAULT 'system',
         "updated_by" character varying(50) DEFAULT 'system',
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
         "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "UQ_bab6cf3a1e33e6790e9b9bd7d1d" UNIQUE ("title"),
         CONSTRAINT "PK_40731c7151fe4be3116e45ddf73" PRIMARY KEY ("id"))`
     )
     await queryRunner.query(

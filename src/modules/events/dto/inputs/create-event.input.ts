@@ -1,6 +1,14 @@
 import { InputType, Field } from '@nestjs/graphql'
 
-import { IsNotEmpty, IsString, MaxLength, IsOptional, IsUUID, IsArray } from 'class-validator'
+import {
+  IsNotEmpty,
+  IsString,
+  MaxLength,
+  IsOptional,
+  IsUUID,
+  IsArray,
+  IsDate
+} from 'class-validator'
 
 @InputType()
 export class CreateEventInput {
@@ -16,6 +24,11 @@ export class CreateEventInput {
   @IsString({ message: 'Event title must be a string' })
   @MaxLength(50, { message: 'Event title cannot be longer than 50 characters' })
   title!: string
+
+  @Field(() => Date)
+  @IsNotEmpty({ message: 'Start date cannot be empty' })
+  @IsDate({ message: 'Invalid start date date format' })
+  startDate!: Date
 
   // Relations
 

@@ -134,6 +134,7 @@ input CreateCustomerInput {
 input CreateEventInput {
   channelId: String!
   images: [String!]
+  startDate: DateTime!
   text: String!
   title: String!
 }
@@ -217,16 +218,29 @@ input EventFilterInputs {
   search: String
 }
 
+"""The status of event"""
+enum EventLocationType {
+  ONLINE
+  ONSITE
+}
+
 type Events {
   channel: Channel!
   createdBy: String
   createdDate: DateTime
+  eventLocationType: EventLocationType!
   id: ID!
   images: [String!]
+  startDate: DateTime!
   text: String!
   title: String!
   updatedBy: String
   updatedDate: DateTime
+}
+
+input LeaveChannelInput {
+  channelId: String!
+  customerId: String!
 }
 
 type Likes {
@@ -363,8 +377,8 @@ type Mutation {
   """To Join new Channel"""
   joinChannel(channelId: String!): SuccessResponse!
 
-  """This will create new Channel"""
-  leaveChannel(input: UpdateChannelInput!): SuccessResponse!
+  """Leave Channel"""
+  leaveChannel(input: LeaveChannelInput!): SuccessResponse!
 
   """This will create new Like on Post"""
   likePost(input: CreateLikeInput!): Likes!
@@ -607,6 +621,7 @@ input UpdateEventInput {
   channelId: String!
   eventId: ID!
   images: [String!]
+  startDate: DateTime!
   text: String!
   title: String!
 }
