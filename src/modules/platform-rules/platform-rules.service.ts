@@ -27,6 +27,14 @@ export class PlatFormRulesService {
 
   // Public Methods
 
+  async getPlatFormRuleByTitle(title: string): Promise<boolean> {
+    const findPlatFormRuleByTitle = await this.platFormRulesRepository.count({ where: { title } })
+    if (findPlatFormRuleByTitle > 0) return true
+    return false
+  }
+
+  // Resolver Query Methods
+
   async getPlatFormRuleById(id: string): Promise<PlatFormRules> {
     const findPlatFormRules = await this.platFormRulesRepository.findOne({
       where: { id }
@@ -36,14 +44,6 @@ export class PlatFormRulesService {
 
     return findPlatFormRules
   }
-
-  async getPlatFormRuleByTitle(title: string): Promise<boolean> {
-    const findPlatFormRuleByTitle = await this.platFormRulesRepository.count({ where: { title } })
-    if (findPlatFormRuleByTitle > 0) return true
-    return false
-  }
-
-  // Resolver Query Methods
 
   async getPlatFormRulesWithPagination({
     limit,

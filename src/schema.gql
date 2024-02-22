@@ -498,6 +498,9 @@ type Query {
   """The List of Customers with Pagination and filters"""
   getCustomersAdmin(input: ListCustomersInputs!): ListCustomersResponse!
 
+  """To get a an event"""
+  getEventById(input: String!): Events!
+
   """Get S3 bucket Signed Url"""
   getEventUploadUrls(count: Float!): [S3SignedUrlResponse!]!
 
@@ -518,6 +521,9 @@ type Query {
 
   """The List of PlatForm rules Pagination and filters"""
   getPlatFormRules(input: ListPlatFormRulesInput!): ListPlatFormRulesResponse!
+
+  """To get a platform rules"""
+  getPlatFormRulesById(input: String!): PlatFormRules!
 
   """Get S3 bucket Signed Url"""
   getPostUploadUrls(count: Float!): [S3SignedUrlResponse!]!

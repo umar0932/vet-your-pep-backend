@@ -35,15 +35,6 @@ export class EventService {
 
   // Public Methods
 
-  async getEventById(id: string, userId: string): Promise<Events> {
-    const findEvents = await this.eventRepository.findOne({
-      where: { id, createdBy: userId }
-    })
-    if (!findEvents) throw new NotFoundException('Event with the provided ID does not exist')
-
-    return findEvents
-  }
-
   async getEventByName(title: string): Promise<boolean> {
     const findEventByName = await this.eventRepository.count({ where: { title } })
     if (findEventByName > 0) return true
@@ -68,6 +59,15 @@ export class EventService {
     if (!events) throw new NotFoundException('Event with the provided ID does not exist')
 
     return { results: [events] }
+  }
+
+  async getEventById(id: string): Promise<Events> {
+    const findEvents = await this.eventRepository.findOne({
+      where: { id }
+    })
+    if (!findEvents) throw new NotFoundException('Event with the provided ID does not exist')
+
+    return findEvents
   }
 
   async getEventUploadUrls(count: number): Promise<S3SignedUrlResponse[]> {
@@ -157,7 +157,7 @@ export class EventService {
     await this.adminService.adminOnlyAccess(user.type)
     const { channelId, eventId, title, ...rest } = updateEventInput
 
-    await this.getEventById(eventId, user.userId)
+    await this.getEventById(eventId)
 
     const channel = await this.channelService.getChannelById(channelId)
 

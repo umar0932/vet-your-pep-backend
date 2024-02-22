@@ -14,16 +14,6 @@ export class EventResolver {
 
   // Queries
 
-  @Query(() => [S3SignedUrlResponse], {
-    description: 'Get S3 bucket Signed Url'
-  })
-  @Allow()
-  async getEventUploadUrls(
-    @Args({ name: 'count', type: () => Number }) count: number
-  ): Promise<S3SignedUrlResponse[]> {
-    return this.eventService.getEventUploadUrls(count)
-  }
-
   @Query(() => ListEventsResponse, {
     description: 'The List of events with Pagination and filters'
   })
@@ -50,6 +40,24 @@ export class EventResolver {
   @Allow()
   async getEventsByChannel(@Args('channelId') channelId: string): Promise<PartialEventResponse> {
     return await this.eventService.getEventByChannelId(channelId)
+  }
+
+  @Query(() => Events, {
+    description: 'To get a an event'
+  })
+  @Allow()
+  async getEventById(@Args('input') eventId: string): Promise<Partial<Events>> {
+    return this.eventService.getEventById(eventId)
+  }
+
+  @Query(() => [S3SignedUrlResponse], {
+    description: 'Get S3 bucket Signed Url'
+  })
+  @Allow()
+  async getEventUploadUrls(
+    @Args({ name: 'count', type: () => Number }) count: number
+  ): Promise<S3SignedUrlResponse[]> {
+    return this.eventService.getEventUploadUrls(count)
   }
 
   // Mutations

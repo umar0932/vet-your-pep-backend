@@ -17,6 +17,16 @@ export class PlatFormRulesResolver {
 
   // Queries
 
+  @Query(() => PlatFormRules, {
+    description: 'To get a platform rules'
+  })
+  @Allow()
+  async getPlatFormRulesById(
+    @Args('input') platFormRulesId: string
+  ): Promise<Partial<PlatFormRules>> {
+    return this.platFormRulesService.getPlatFormRuleById(platFormRulesId)
+  }
+
   @Query(() => ListPlatFormRulesResponse, {
     description: 'The List of PlatForm rules Pagination and filters'
   })
