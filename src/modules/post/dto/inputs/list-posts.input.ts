@@ -7,6 +7,11 @@ import { IsOptional, IsUUID } from 'class-validator'
 export class ListPostsInput {
   @Field(() => String, { nullable: true })
   @IsOptional()
+  @IsUUID('4', { message: 'Invalid Channel UUID format' })
+  channelId?: string
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
   @IsUUID('4', { message: 'Invalid Customer UUID format' })
   customerId?: string
 

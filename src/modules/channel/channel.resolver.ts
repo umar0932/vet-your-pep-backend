@@ -15,7 +15,7 @@ export class ChannelResolver {
   // Queries
 
   @Query(() => Channel, {
-    description: 'This will create get a Channel'
+    description: 'To get a Channel'
   })
   @Allow()
   async getChannelById(@Args('input') channelId: string): Promise<Partial<Channel>> {
@@ -65,7 +65,7 @@ export class ChannelResolver {
   }
 
   @Mutation(() => SuccessResponse, {
-    description: 'This will create new Channel'
+    description: 'To Join new Channel'
   })
   @Allow()
   async joinChannel(
@@ -76,13 +76,24 @@ export class ChannelResolver {
   }
 
   @Mutation(() => SuccessResponse, {
-    description: 'This will create new Channel'
+    description: 'This will update Channel'
   })
   @Allow()
   async updateChannel(
     @Args('input') updateChannelInput: UpdateChannelInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    return await this.channelsService.updateChannel(updateChannelInput, user.userId, user.type)
+    return await this.channelsService.updateChannel(updateChannelInput, user)
+  }
+
+  @Mutation(() => SuccessResponse, {
+    description: 'This will create new Channel'
+  })
+  @Allow()
+  async leaveChannel(
+    @Args('input') updateChannelInput: UpdateChannelInput,
+    @CurrentUser() user: JwtUserPayload
+  ): Promise<SuccessResponse> {
+    return await this.channelsService.leaveChannel(updateChannelInput, user)
   }
 }

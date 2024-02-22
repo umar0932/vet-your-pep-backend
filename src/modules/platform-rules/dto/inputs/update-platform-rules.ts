@@ -11,6 +11,6 @@ export class UpdatePlatFormRulesInput extends PickType(CreatePlatFormRulesInput,
 ]) {
   @Field(() => ID)
   @IsNotEmpty({ message: 'Platform Rules ID cannot be empty' })
-  @IsString({ message: 'Event ID must be a string' })
+  @IsString({ message: 'Platform Rule ID must be a string' })
   platFormRulesId!: string
 }

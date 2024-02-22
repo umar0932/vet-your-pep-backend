@@ -27,9 +27,9 @@ export class PlatFormRulesService {
 
   // Public Methods
 
-  async getPlatFormRuleById(id: string, userId: string): Promise<PlatFormRules> {
+  async getPlatFormRuleById(id: string): Promise<PlatFormRules> {
     const findPlatFormRules = await this.platFormRulesRepository.findOne({
-      where: { id, createdBy: userId }
+      where: { id }
     })
     if (!findPlatFormRules)
       throw new NotFoundException('PlatForm rule with the provided ID does not exist')
@@ -81,7 +81,8 @@ export class PlatFormRulesService {
     createPlatFormRulesInput: CreatePlatFormRulesInput,
     user: JwtUserPayload
   ): Promise<PlatFormRules> {
-    await this.adminService.adminOnlyAccess(user.type)
+    const { userId, type } = user || {}
+    await this.adminService.adminOnlyAccess(type)
 
     const { title, ...rest } = createPlatFormRulesInput
 
@@ -90,7 +91,8 @@ export class PlatFormRulesService {
 
     const platFormRule = await this.platFormRulesRepository.save({
       title,
-      ...rest
+      ...rest,
+      createdBy: userId
     })
 
     return platFormRule
@@ -100,24 +102,25 @@ export class PlatFormRulesService {
     updateEventInput: UpdatePlatFormRulesInput,
     user: JwtUserPayload
   ): Promise<PlatFormRules> {
-    await this.adminService.adminOnlyAccess(user.type)
+    const { userId, type } = user || {}
+    await this.adminService.adminOnlyAccess(type)
     const { platFormRulesId, title, ...rest } = updateEventInput
 
-    const platFormRule = await this.getPlatFormRuleById(platFormRulesId, user.userId)
+    const platFormRule = await this.getPlatFormRuleById(platFormRulesId)
 
     const platFormRuleExists = await this.getPlatFormRuleByTitle(title)
     if (platFormRuleExists) throw new BadRequestException('Platform rule title already exists')
 
     try {
-      await this.platFormRulesRepository.update(platFormRulesId, {
+      await this.platFormRulesRepository.update(platFormRule.id, {
         ...rest,
         title,
-        admin: { id: user.userId },
-        updatedBy: user.userId,
+        admin: { id: userId },
+        updatedBy: userId,
         updatedDate: new Date()
       })
 
-      return platFormRule
+      return await this.getPlatFormRuleById(platFormRulesId)
     } catch (error) {
       throw new BadRequestException('Failed to update event')
     }

@@ -104,6 +104,7 @@ export class ChannelService {
   }
 
   // Resolver Query Methods
+
   async getChannelById(id: string): Promise<Channel> {
     const findChannel = await this.channelsRepository.findOne({
       where: { id },
@@ -156,8 +157,6 @@ export class ChannelService {
       }
 
       queryBuilder
-        .take(limit)
-        .skip(offset)
         .leftJoinAndSelect('channels.moderator', 'moderator')
         .leftJoinAndSelect('channels.members', 'channelMember')
         .leftJoinAndSelect('channels.posts', 'post')
@@ -168,6 +167,8 @@ export class ChannelService {
         .leftJoinAndSelect('likes.user', 'userLike')
         .leftJoinAndSelect('comments.user', 'userComments')
         .leftJoinAndSelect('channelMember.customer', 'customer')
+        .take(limit)
+        .skip(offset)
 
       if (type === JWT_STRATEGY_NAME.CUSTOMER) {
         if (joined) {
@@ -273,19 +274,45 @@ export class ChannelService {
 
   async updateChannel(
     updateChannelInput: UpdateChannelInput,
-    userId: string,
-    userType: string
+    user: JwtUserPayload
   ): Promise<SuccessResponse> {
     const { id, title, ...rest } = updateChannelInput
+    const { userId, type } = user || {}
 
     let channel
-    if (userType === 'admin') channel = await this.getChannelById(id)
-    if (userType === 'customer') channel = await this.getChannelByModeratorId(id, userId)
+    if (type === JWT_STRATEGY_NAME.CUSTOMER)
+      channel = await this.getChannelByModeratorId(id, userId)
 
-    if (channel.title !== title) {
-      const channelByName = await this.getChannelsByName(title)
-      if (channelByName) throw new BadRequestException('Same Channel Name already exists')
+    const channelByName = await this.getChannelsByName(title)
+    if (channelByName) throw new BadRequestException('Same Channel Name already exists')
+
+    try {
+      await this.channelsRepository.update(channel.id, {
+        ...rest,
+        title,
+        updatedBy: userId,
+        updatedDate: new Date()
+      })
+    } catch (error) {
+      throw new BadRequestException('Failed to update Channel')
     }
+
+    return { success: true, message: 'Channel updated' }
+  }
+
+  async leaveChannel(
+    updateChannelInput: UpdateChannelInput,
+    user: JwtUserPayload
+  ): Promise<SuccessResponse> {
+    const { id, title, ...rest } = updateChannelInput
+    const { userId, type } = user || {}
+
+    let channel
+    if (type === JWT_STRATEGY_NAME.CUSTOMER)
+      channel = await this.getChannelByModeratorId(id, userId)
+
+    const channelByName = await this.getChannelsByName(title)
+    if (channelByName) throw new BadRequestException('Same Channel Name already exists')
 
     try {
       await this.channelsRepository.update(channel.id, {

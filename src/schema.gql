@@ -306,6 +306,7 @@ type ListPlatFormRulesResponse {
 }
 
 input ListPostsInput {
+  channelId: String
   customerId: String
   filter: PostFilterInputs
   limit: Float!
@@ -359,8 +360,11 @@ type Mutation {
   """This will follow a customer"""
   followCustomer(customerId: String!): SuccessResponse!
 
-  """This will create new Channel"""
+  """To Join new Channel"""
   joinChannel(channelId: String!): SuccessResponse!
+
+  """This will create new Channel"""
+  leaveChannel(input: UpdateChannelInput!): SuccessResponse!
 
   """This will create new Like on Post"""
   likePost(input: CreateLikeInput!): SuccessResponse!
@@ -392,7 +396,7 @@ type Mutation {
   """This will update Admin Password"""
   updateAdminPassword(password: String!): SuccessResponse!
 
-  """This will create new Channel"""
+  """This will update Channel"""
   updateChannel(input: UpdateChannelInput!): SuccessResponse!
 
   """This will update new Comment"""
@@ -468,7 +472,7 @@ input PostFilterInputs {
 }
 
 type Query {
-  """This will create get a Channel"""
+  """To get a Channel"""
   getChannelById(input: String!): Channel!
 
   """Get S3 bucket Signed Url"""

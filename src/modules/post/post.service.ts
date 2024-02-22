@@ -82,7 +82,7 @@ export class PostService {
     listPostsInput: ListPostsInput,
     user: JwtUserPayload
   ): Promise<[Post[], number, number, number]> {
-    const { limit, offset, filter, myPosts, customerId, userFeed } = listPostsInput
+    const { limit, offset, filter, myPosts, customerId, userFeed, channelId } = listPostsInput
     const { search } = filter || {}
     const { userId, type } = user || {}
 
@@ -98,15 +98,17 @@ export class PostService {
       }
 
       queryBuilder
-        .take(limit)
-        .skip(offset)
         .leftJoinAndSelect('posts.likes', 'likes')
         .leftJoinAndSelect('posts.customer', 'customer')
         .leftJoinAndSelect('posts.comments', 'comments')
         .leftJoinAndSelect('posts.channel', 'channel')
         .orderBy('posts.createdDate', 'DESC')
+        .take(limit)
+        .skip(offset)
 
-      if (type === JWT_STRATEGY_NAME.CUSTOMER) {
+      if (channelId) {
+        queryBuilder.andWhere('channel.id = :channelId', { channelId })
+      } else if (type === JWT_STRATEGY_NAME.CUSTOMER) {
         if (userFeed) {
           queryBuilder.innerJoin('channel.members', 'cm', 'cm.customer.id = :userId', { userId })
         } else if (myPosts) {
@@ -134,6 +136,7 @@ export class PostService {
           await this.adminService.adminOnlyAccess(type)
         }
       }
+
       const [posts, total] = await queryBuilder.getManyAndCount()
 
       return [posts, total, limit, offset]
