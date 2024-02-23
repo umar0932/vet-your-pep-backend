@@ -21,24 +21,28 @@ registerEnumType(SocialProviderTypes, {
 @Entity('social_provider')
 @ObjectType()
 export class SocialProvider {
+  // Primary key
   @Field(() => ID)
-  @PrimaryGeneratedColumn()
-  id: number
+  @PrimaryGeneratedColumn('uuid')
+  id: string
 
+  // Complusory Variables
   @Column({ type: 'enum', enum: SocialProviderTypes, name: 'social_provider' })
   @Field(() => SocialProviderTypes)
-  provider: SocialProviderTypes
+  provider!: SocialProviderTypes
 
   @Column({ unique: true, name: 'social_id' })
   @Field(() => String)
-  socialId: string
-
-  @Field(() => Customer)
-  @OneToOne(() => Customer, customer => customer.socialProvider, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'customer_id' })
-  customer: Customer
+  socialId!: string
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP', name: 'created_at' })
   @Field()
   createdDate: Date
+
+  // Relations
+
+  @Field(() => Customer)
+  @OneToOne(() => Customer, customer => customer.socialProvider, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'customer_id' })
+  customer!: Customer
 }
