@@ -294,6 +294,7 @@ type ListCustomersResponse {
 }
 
 input ListEventsInput {
+  channelId: String
   filter: EventFilterInputs
   limit: Float!
   offset: Float = 0

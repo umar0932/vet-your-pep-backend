@@ -19,16 +19,11 @@ export class EventResolver {
   })
   @Allow()
   async getEvents(
-    @Args('input') args: ListEventsInput,
+    @Args('input') listEventsInput: ListEventsInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<ListEventsResponse> {
-    const { limit, offset, filter } = args
-    const [events, count] = await this.eventService.getEventsWithPagination(
-      {
-        limit,
-        offset,
-        filter
-      },
+    const [events, count, limit, offset] = await this.eventService.getEventsWithPagination(
+      listEventsInput,
       user
     )
     return { results: events, totalRows: count, limit, offset }

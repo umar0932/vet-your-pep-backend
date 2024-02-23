@@ -305,7 +305,7 @@ export class CustomerUserService {
     try {
       const following = await this.customerFollowerRepository.find({
         where: { followers: { id: customerId } },
-        relations: ['following'] // Include the 'following' relation to fetch the user data
+        relations: ['following']
       })
       return following.map(followTo => followTo.following)
     } catch (error) {

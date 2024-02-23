@@ -95,10 +95,11 @@ export class EventService {
   }
 
   async getEventsWithPagination(
-    { limit, offset, filter }: ListEventsInput,
+    listEventsInput: ListEventsInput,
     user: JwtUserPayload
-  ): Promise<[Events[], number]> {
+  ): Promise<[Events[], number, number, number]> {
     await this.adminService.adminOnlyAccess(user.type)
+    const { limit, offset, filter, channelId } = listEventsInput
     const { search } = filter || {}
 
     try {
@@ -114,9 +115,11 @@ export class EventService {
 
       queryBuilder.take(limit).skip(offset).leftJoinAndSelect('events.channel', 'channel')
 
+      if (channelId) queryBuilder.andWhere('channel.id = :channelId', { channelId })
+
       const [events, total] = await queryBuilder.getManyAndCount()
 
-      return [events, total]
+      return [events, total, limit, offset]
     } catch (error) {
       throw new BadRequestException('Failed to find Event')
     }
