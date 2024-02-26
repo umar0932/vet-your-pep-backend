@@ -113,6 +113,7 @@ export class EventService {
         queryBuilder
           .leftJoinAndSelect('channel.members', 'cm')
           .where('cm.customer.id = :userId', { userId })
+          .andWhere('channel.id = :channelId', { channelId })
       }
 
       if (search) {
