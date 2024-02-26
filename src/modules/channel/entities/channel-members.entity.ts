@@ -17,9 +17,9 @@ registerEnumType(ChannelUserRole, {
 @ObjectType()
 export class ChannelMember extends CustomBaseEntity {
   // Primary key
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   @Field(() => ID)
-  id!: number
+  id!: string
 
   // Complusory Variables
 
@@ -41,12 +41,18 @@ export class ChannelMember extends CustomBaseEntity {
   // Relations
 
   @Field(() => Channel)
-  @ManyToOne(() => Channel, channel => channel.members)
+  @ManyToOne(() => Channel, channel => channel.members, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
+  })
   @JoinColumn({ name: 'channel_id' })
   channel!: Channel
 
   @Field(() => Customer)
-  @ManyToOne(() => Customer, customer => customer.channelMembers)
+  @ManyToOne(() => Customer, customer => customer.channelMembers, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
+  })
   @JoinColumn({ name: 'customer_id' })
   customer!: Customer
 }

@@ -6,13 +6,13 @@ import { AwsS3ClientModule } from '@app/aws-s3-client'
 import { ChannelsModule } from '@app/channel'
 import { CustomerUserModule } from '@app/customer-user'
 
-import { Likes, Post } from './entities'
+import { Post } from './entities'
 import { PostResolver } from './post.resolver'
 import { PostService } from './post.service'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Post, Likes]),
+    TypeOrmModule.forFeature([Post]),
     AdminModule,
     AwsS3ClientModule,
     CustomerUserModule,

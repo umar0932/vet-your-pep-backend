@@ -3,10 +3,10 @@ import { Resolver, Mutation, Args, Query } from '@nestjs/graphql'
 import { Allow, CurrentUser, JwtUserPayload, SuccessResponse } from '@app/common'
 import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
+import { CreatePostInput, ListPostsInput, UpdatePostInput } from './dto/inputs'
+import { ListPostsResponse } from './dto/args'
 import { Post } from './entities'
 import { PostService } from './post.service'
-import { CreatePostInput } from './dto/inputs'
-// import { ListPostsResponse } from './dto/args'
 
 @Resolver(() => Post)
 export class PostResolver {
@@ -24,6 +24,21 @@ export class PostResolver {
     return this.postService.getPostUploadUrls(count)
   }
 
+  @Query(() => ListPostsResponse, {
+    description: 'The List of posts with Pagination and filters'
+  })
+  @Allow()
+  async getPosts(
+    @Args('input') listPostsInput: ListPostsInput,
+    @CurrentUser() user: JwtUserPayload
+  ): Promise<ListPostsResponse> {
+    const [posts, count, limit, offset] = await this.postService.getPostsWithPagination(
+      listPostsInput,
+      user
+    )
+    return { results: posts, totalRows: count, limit, offset }
+  }
+
   // Mutations
 
   @Mutation(() => SuccessResponse, {
@@ -35,5 +50,16 @@ export class PostResolver {
     @CurrentUser() user: JwtUserPayload
   ): Promise<SuccessResponse> {
     return await this.postService.createPost(createPostInput, user.userId)
+  }
+
+  @Mutation(() => SuccessResponse, {
+    description: 'This will update new Post'
+  })
+  @Allow()
+  async updatePost(
+    @Args('input') createPostInput: UpdatePostInput,
+    @CurrentUser() user: JwtUserPayload
+  ): Promise<SuccessResponse> {
+    return await this.postService.updatePost(createPostInput, user.userId)
   }
 }

@@ -1,6 +1,6 @@
 import { InputType, Field } from '@nestjs/graphql'
 
-import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator'
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator'
 
 @InputType()
 export class CreateCustomerInput {
@@ -29,4 +29,8 @@ export class CreateCustomerInput {
   @IsNotEmpty({ message: 'Password cannot be empty' })
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   password!: string
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  cellPhone?: string
 }

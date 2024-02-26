@@ -1,20 +1,16 @@
-import { ObjectType, Field, ID, registerEnumType, Int } from '@nestjs/graphql'
+import { ObjectType, Field, ID, Int } from '@nestjs/graphql'
 
 import { Column, Entity, Index, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Transform } from 'class-transformer'
 
 import { Channel, ChannelMember } from '@app/channel/entities'
+import { Comments } from '@app/comments/entities'
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
-import { Likes, Post } from '@app/post/entities'
+import { Likes } from '@app/like/entities'
+import { Post } from '@app/post/entities'
 import { SocialProvider } from '@app/common/entities'
 
-import { UserRole } from '../customer-user.constants'
 import { CustomerFollower } from './customer-follower.entity'
-
-registerEnumType(UserRole, {
-  name: 'UserRole',
-  description: 'The role of Users'
-})
 
 @Entity({ name: 'customer_user' })
 @Index(['email'])
@@ -72,73 +68,54 @@ export class Customer extends CustomBaseEntity {
 
   // Enums
 
-  @Field(() => UserRole)
-  @Column({
-    type: 'enum',
-    enum: UserRole,
-    default: UserRole.USER,
-    name: 'user_role'
-  })
-  role!: UserRole
-
   // Relations
 
   @Field(() => [Channel], { nullable: true })
   @OneToMany(() => Channel, channel => channel.moderator, {
-    nullable: true,
-    cascade: true
+    nullable: true
   })
-  channels: Channel[]
+  channels?: Channel[]
 
+  @Field(() => [Channel], { nullable: true })
   @OneToMany(() => ChannelMember, channelMember => channelMember.customer, {
-    eager: true,
-    nullable: true,
-    cascade: true
+    nullable: true
   })
-  channelMembers: ChannelMember[]
+  channelMembers?: ChannelMember[]
 
-  // @Field(() => [Comment], { nullable: true })
-  // @OneToMany(() => Comment, comment => comment.customer, {
-  //   eager: true,
-  //   nullable: true,
-  //   cascade: true
-  // })
-  // comments: Comment[]
+  @Field(() => [Comments], { nullable: true })
+  @OneToMany(() => Comments, comments => comments.user, {
+    nullable: true
+  })
+  comments?: Comments[]
 
   @Field(() => [CustomerFollower], { nullable: true })
   @OneToMany(() => CustomerFollower, (uf: CustomerFollower) => uf.followers, {
     eager: true,
-    nullable: true,
-    cascade: true
+    nullable: true
   })
-  followers: CustomerFollower[]
+  followers?: CustomerFollower[]
 
   @Field(() => [CustomerFollower], { nullable: true })
   @OneToMany(() => CustomerFollower, (uf: CustomerFollower) => uf.following, {
     eager: true,
-    nullable: true,
-    cascade: true
+    nullable: true
   })
-  following: CustomerFollower[]
+  following?: CustomerFollower[]
 
   @Field(() => [Likes], { nullable: true })
   @OneToMany(() => Likes, like => like.user, {
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE'
+    nullable: true
   })
-  likes: Likes[]
+  likes?: Likes[]
 
   @Field(() => [Post], { nullable: true })
   @OneToMany(() => Post, (post: Post) => post.customer, {
-    eager: true,
-    nullable: true,
-    cascade: true
+    nullable: true
   })
-  posts: Post[]
+  posts?: Post[]
 
   @Field(() => SocialProvider, { nullable: true })
   @OneToOne(() => SocialProvider, socialProvider => socialProvider.customer, {
-    eager: true,
     nullable: true
   })
   socialProvider?: SocialProvider

@@ -10,22 +10,26 @@ import { Customer } from './customer.entity'
 @ObjectType()
 export class CustomerFollower extends CustomBaseEntity {
   // Primary key
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   @Field(() => ID)
-  id: number
+  id: string
 
   // Relations
 
   @Field(() => Customer, { nullable: true })
   @ManyToOne(() => Customer, customer => customer.followers, {
-    nullable: true
+    nullable: true,
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
   })
   @JoinColumn({ name: 'follower_id' })
   followers: Customer
 
   @Field(() => Customer, { nullable: true })
   @ManyToOne(() => Customer, customer => customer.following, {
-    nullable: true
+    nullable: true,
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
   })
   @JoinColumn({ name: 'following_id' })
   following: Customer

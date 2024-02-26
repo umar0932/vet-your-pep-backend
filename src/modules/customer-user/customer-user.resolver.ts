@@ -18,6 +18,7 @@ import {
   CustomerEmailUpdateResponse,
   CustomerLoginOrRegisterResponse,
   ListCustomersResponse,
+  OtherCustomerDataResponse,
   SearchCustomersResponse
 } from './dto/args'
 import { CustomerUserService } from './customer-user.service'
@@ -63,16 +64,27 @@ export class CustomerUserResolver {
     description: 'Get the followers of the authenticated customer'
   })
   @Allow()
-  async getFollowers(@CurrentUser() user: JwtUserPayload): Promise<Customer[]> {
-    return this.customerUserService.getFollowers(user.userId)
+  async getFollowers(@Args('customerId') customerId: string): Promise<Customer[]> {
+    return this.customerUserService.getFollowers(customerId)
   }
 
   @Query(() => [Customer], {
-    description: 'Get the followers of the authenticated customer'
+    description: 'Get the following of the authenticated customer'
   })
   @Allow()
-  async getFollowing(@CurrentUser() user: JwtUserPayload): Promise<Customer[]> {
-    return this.customerUserService.getFollowing(user.userId)
+  async getFollowing(@Args('customerId') customerId: string): Promise<Customer[]> {
+    return this.customerUserService.getFollowing(customerId)
+  }
+
+  @Query(() => OtherCustomerDataResponse, { description: 'Get other Customer Data' })
+  @Allow()
+  async getOtherCustomerData(
+    @CurrentUser() user: JwtUserPayload,
+    @Args('customerId') customerId: string
+  ): Promise<OtherCustomerDataResponse> {
+    const otherCustomer = await this.customerUserService.getCustomerById(customerId)
+    const isFollowing = await this.customerUserService.isFollowing(user.userId, customerId)
+    return { user: otherCustomer, isFollowing }
   }
 
   @Query(() => SearchCustomersResponse, {
@@ -126,17 +138,6 @@ export class CustomerUserResolver {
     @CurrentUser() user: JwtUserPayload
   ): Promise<SuccessResponse> {
     return this.customerUserService.followCustomer(user.userId, customerId)
-  }
-
-  @Mutation(() => SuccessResponse, {
-    description: 'This will a customer to moderator'
-  })
-  @Allow()
-  async makeModerator(
-    @CurrentUser() user: JwtUserPayload,
-    @Args('input') moderatorId: string
-  ): Promise<SuccessResponse> {
-    return await this.customerUserService.makeModerator(moderatorId, user.userId)
   }
 
   @Mutation(() => String, {

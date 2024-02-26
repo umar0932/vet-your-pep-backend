@@ -3,13 +3,18 @@
 # ------------------------------------------------------
 
 type Admin {
+  createdBy: String
+  createdDate: DateTime
   email: String!
   firstName: String!
   id: ID!
   isActive: Boolean
   lastName: String!
   password: String!
+  platFormRules: [PlatFormRules!]
   profileImage: String
+  updatedBy: String
+  updatedDate: DateTime
 }
 
 type AdminEmailUpdateResponse {
@@ -25,6 +30,9 @@ type AdminLoginResponse {
 type Channel {
   about: String
   backgroundImage: String
+  createdBy: String
+  createdDate: DateTime
+  events: [Events!]
   id: ID!
   image: String
   isPaid: Boolean!
@@ -37,6 +45,8 @@ type Channel {
   status: ChannelStatus!
   title: String!
   totalMembers: Int
+  updatedBy: String
+  updatedDate: DateTime
 }
 
 input ChannelFilterInputs {
@@ -46,10 +56,14 @@ input ChannelFilterInputs {
 
 type ChannelMember {
   channel: Channel!
+  createdBy: String
+  createdDate: DateTime
   customer: Customer!
   id: ID!
   paidStatus: Boolean!
   roleChannel: ChannelUserRole!
+  updatedBy: String
+  updatedDate: DateTime
 }
 
 """The status of channels"""
@@ -65,6 +79,21 @@ enum ChannelUserRole {
   MODERATOR
 }
 
+type Comments {
+  content: String!
+  createdBy: String
+  createdDate: DateTime
+  id: ID!
+  post: Post!
+  updatedBy: String
+  updatedDate: DateTime
+  user: Customer!
+}
+
+input CommentsFilterInputs {
+  search: String
+}
+
 input CreateAdminUserInput {
   email: String!
   firstName: String!
@@ -74,6 +103,8 @@ input CreateAdminUserInput {
 
 input CreateChannelInput {
   about: String
+  backgroundImage: String
+  image: String
   moderatorId: String!
   rules: String
   status: ChannelStatus! = PUBLIC
@@ -87,23 +118,49 @@ input CreateChargeInput {
   paymentMethodId: String!
 }
 
+input CreateCommentInput {
+  content: String!
+  postId: String!
+}
+
 input CreateCustomerInput {
+  cellPhone: String
   email: String!
   firstName: String!
   lastName: String!
   password: String!
 }
 
+input CreateEventInput {
+  channelId: String!
+  images: [String!]
+  startDate: DateTime!
+  text: String!
+  title: String!
+}
+
+input CreateLikeInput {
+  postId: String!
+}
+
+input CreatePlatFormRulesInput {
+  rules: String
+  title: String!
+}
+
 input CreatePostInput {
   body: String!
   channelId: String!
-  customerId: String!
   images: [String!]
 }
 
 type Customer {
   cellPhone: String
+  channelMembers: [Channel!]
   channels: [Channel!]
+  comments: [Comments!]
+  createdBy: String
+  createdDate: DateTime
   email: String!
   firstName: String!
   followers: [CustomerFollower!]
@@ -115,11 +172,12 @@ type Customer {
   password: String!
   posts: [Post!]
   profileImage: String
-  role: UserRole!
   socialProvider: SocialProvider
   stripeCustomerId: String
   totalFollowers: Int
   totalFollowings: Int
+  updatedBy: String
+  updatedDate: DateTime
 }
 
 type CustomerEmailUpdateResponse {
@@ -137,9 +195,13 @@ input CustomerFilterInput {
 }
 
 type CustomerFollower {
+  createdBy: String
+  createdDate: DateTime
   followers: Customer
   following: Customer
   id: ID!
+  updatedBy: String
+  updatedDate: DateTime
 }
 
 type CustomerLoginOrRegisterResponse {
@@ -152,9 +214,47 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-type Likes {
+input EventFilterInputs {
+  search: String
+}
+
+"""The status of event"""
+enum EventLocationType {
+  ONLINE
+  ONSITE
+}
+
+type Events {
+  channel: Channel!
+  createdBy: String
+  createdDate: DateTime
+  eventLocationType: EventLocationType!
   id: ID!
-  user: String!
+  images: [String!]
+  startDate: DateTime!
+  text: String!
+  title: String!
+  updatedBy: String
+  updatedDate: DateTime
+}
+
+input LeaveChannelInput {
+  channelId: String!
+  customerId: String!
+}
+
+input LikeFilterInputs {
+  search: String
+}
+
+type Likes {
+  createdBy: String
+  createdDate: DateTime
+  id: ID!
+  post: Post
+  updatedBy: String
+  updatedDate: DateTime
+  user: Customer
 }
 
 input ListChannelsInput {
@@ -171,6 +271,19 @@ type ListChannelsResponse {
   totalRows: Float
 }
 
+input ListCommentsInput {
+  filter: CommentsFilterInputs
+  limit: Float!
+  offset: Float = 0
+}
+
+type ListCommentsResponse {
+  limit: Float!
+  offset: Float
+  results: [Comments!]!
+  totalRows: Float
+}
+
 input ListCustomersInputs {
   filter: CustomerFilterInput
   limit: Float!
@@ -181,6 +294,64 @@ type ListCustomersResponse {
   limit: Float!
   offset: Float
   results: [Customer!]!
+  totalRows: Float
+}
+
+input ListEventsInput {
+  channelId: String
+  filter: EventFilterInputs
+  limit: Float!
+  offset: Float = 0
+}
+
+type ListEventsResponse {
+  limit: Float!
+  offset: Float
+  results: [Events!]!
+  totalRows: Float
+}
+
+input ListLikesInput {
+  customerId: String
+  filter: LikeFilterInputs
+  limit: Float
+  offset: Float
+  postId: String
+}
+
+type ListLikesResponse {
+  limit: Float
+  offset: Float
+  results: [Likes!]!
+  totalRows: Float
+}
+
+input ListPlatFormRulesInput {
+  filter: PlatFormRulesFilterInputs
+  limit: Float!
+  offset: Float = 0
+}
+
+type ListPlatFormRulesResponse {
+  limit: Float!
+  offset: Float
+  results: [PlatFormRules!]!
+  totalRows: Float
+}
+
+input ListPostsInput {
+  channelId: String
+  customerId: String
+  filter: PostFilterInputs
+  limit: Float!
+  offset: Float = 0
+  userFeed: Boolean = false
+}
+
+type ListPostsResponse {
+  limit: Float!
+  offset: Float
+  results: [Post!]!
   totalRows: Float
 }
 
@@ -204,8 +375,17 @@ type Mutation {
   """This will create new Channel"""
   createChannel(input: CreateChannelInput!): SuccessResponse!
 
+  """This will create new Comment"""
+  createComment(input: CreateCommentInput!): SuccessResponse!
+
   """This will signup new Customers"""
   createCustomer(input: CreateCustomerInput!): CustomerLoginOrRegisterResponse!
+
+  """This will create new Event"""
+  createEvent(input: CreateEventInput!): SuccessResponse!
+
+  """Create new plate form rules"""
+  createPlatFormRule(input: CreatePlatFormRulesInput!): PlatFormRules!
 
   """This will create new Post"""
   createPost(input: CreatePostInput!): SuccessResponse!
@@ -213,17 +393,20 @@ type Mutation {
   """This will follow a customer"""
   followCustomer(customerId: String!): SuccessResponse!
 
-  """This will create new Channel"""
+  """To Join new Channel"""
   joinChannel(channelId: String!): SuccessResponse!
+
+  """Leave Channel"""
+  leaveChannel(input: LeaveChannelInput!): SuccessResponse!
+
+  """This will create new Like on Post"""
+  likePost(input: CreateLikeInput!): Likes!
 
   """Admin Login"""
   loginAsAdmin(input: LoginAdminInput!): AdminLoginResponse!
 
   """Customer Login"""
   loginAsCustomer(input: LoginCustomerInput!): CustomerLoginOrRegisterResponse!
-
-  """This will a customer to moderator"""
-  makeModerator(input: String!): SuccessResponse!
 
   """This will save/update user profile image in DB"""
   saveCustomerMediaUrl(fileName: String!): String!
@@ -234,6 +417,9 @@ type Mutation {
   """This will unfollow a customer"""
   unfollowCustomer(customerId: String!): SuccessResponse!
 
+  """This will unlike Post"""
+  unlikePost(input: UpdateLikeInput!): Likes!
+
   """Update admin data"""
   updateAdminData(input: UpdateAdminUserInput!): String!
 
@@ -243,8 +429,11 @@ type Mutation {
   """This will update Admin Password"""
   updateAdminPassword(password: String!): SuccessResponse!
 
-  """This will create new Channel"""
+  """This will update Channel"""
   updateChannel(input: UpdateChannelInput!): SuccessResponse!
+
+  """This will update new Comment"""
+  updateComment(input: UpdateCommentInput!): SuccessResponse!
 
   """This will update Customer"""
   updateCustomer(input: UpdateCustomerInput!): Customer!
@@ -254,6 +443,20 @@ type Mutation {
 
   """This will update Customer Password"""
   updateCustomerPassword(password: String!): SuccessResponse!
+
+  """This will update Event"""
+  updateEvent(input: UpdateEventInput!): SuccessResponse!
+
+  """This will update Event"""
+  updatePlatFormRule(input: UpdatePlatFormRulesInput!): PlatFormRules!
+
+  """This will update new Post"""
+  updatePost(input: UpdatePostInput!): SuccessResponse!
+}
+
+type OtherCustomerDataResponse {
+  isFollowing: Boolean!
+  user: Customer!
 }
 
 type PageData {
@@ -262,22 +465,62 @@ type PageData {
   offset: Int
 }
 
+type PartialEventResponse {
+  results: [Events!]!
+}
+
+type PlatFormRules {
+  admin: Admin!
+  createdBy: String
+  createdDate: DateTime
+  id: ID!
+  rules: String!
+  title: String!
+  updatedBy: String
+  updatedDate: DateTime
+}
+
+input PlatFormRulesFilterInputs {
+  search: String
+  title: String
+}
+
 type Post {
   body: String!
-  channel: Channel
+  channel: Channel!
+  comments: [Comments!]
+  createdBy: String
+  createdDate: DateTime
   customer: Customer!
   id: ID!
   images: [String!]
   likeCount: Int
   likes: [Likes!]
+  updatedBy: String
+  updatedDate: DateTime
+}
+
+input PostFilterInputs {
+  search: String
 }
 
 type Query {
-  """This will create get a Channel"""
+  """To get a Channel"""
   getChannelById(input: String!): Channel!
 
   """Get S3 bucket Signed Url"""
   getChannelUploadUrl: S3SignedUrlResponse!
+
+  """
+  The List of Channels user have joined or not with Pagination and filters
+  """
+  getChannels(input: ListChannelsInput!): ListChannelsResponse!
+
+  """Get Session Token for Chat SDK"""
+  getChatToken: String!
+
+  """The List of comments with Pagination and filters"""
+  getComments(input: ListCommentsInput!): ListCommentsResponse!
 
   """Get the Customer"""
   getCustomerData: Customer!
@@ -288,20 +531,41 @@ type Query {
   """The List of Customers with Pagination and filters"""
   getCustomersAdmin(input: ListCustomersInputs!): ListCustomersResponse!
 
-  """Get the followers of the authenticated customer"""
-  getFollowers: [Customer!]!
+  """To get a an event"""
+  getEventById(input: String!): Events!
+
+  """Get S3 bucket Signed Url"""
+  getEventUploadUrls(count: Float!): [S3SignedUrlResponse!]!
+
+  """The List of events with Pagination and filters"""
+  getEvents(input: ListEventsInput!): ListEventsResponse!
+
+  """The List of events by channelId"""
+  getEventsByChannel(channelId: String!): PartialEventResponse!
 
   """Get the followers of the authenticated customer"""
-  getFollowing: [Customer!]!
+  getFollowers(customerId: String!): [Customer!]!
 
-  """The List of Channel user have joined with Pagination and filters"""
-  getMyChannels(input: ListChannelsInput!): ListChannelsResponse!
+  """Get the following of the authenticated customer"""
+  getFollowing(customerId: String!): [Customer!]!
+
+  """The List of likes with Pagination and filters"""
+  getLikes(input: ListLikesInput!): ListLikesResponse!
+
+  """Get other Customer Data"""
+  getOtherCustomerData(customerId: String!): OtherCustomerDataResponse!
+
+  """The List of PlatForm rules Pagination and filters"""
+  getPlatFormRules(input: ListPlatFormRulesInput!): ListPlatFormRulesResponse!
+
+  """To get a platform rules"""
+  getPlatFormRulesById(input: String!): PlatFormRules!
 
   """Get S3 bucket Signed Url"""
   getPostUploadUrls(count: Float!): [S3SignedUrlResponse!]!
 
-  """The List of Channel with Pagination and filters"""
-  listChannels(input: ListChannelsInput!): ListChannelsResponse!
+  """The List of posts with Pagination and filters"""
+  getPosts(input: ListPostsInput!): ListPostsResponse!
 
   """The List of Customers with filters"""
   searchCustomers(search: String!): SearchCustomersResponse!
@@ -353,9 +617,17 @@ input UpdateAdminUserInput {
 
 input UpdateChannelInput {
   about: String
+  backgroundImage: String
   id: ID!
+  image: String
   rules: String
   title: String!
+}
+
+input UpdateCommentInput {
+  commentId: ID!
+  content: String!
+  postId: String!
 }
 
 input UpdateCustomerInput {
@@ -367,8 +639,28 @@ input UpdateCustomerInput {
   stripeCustomerId: String
 }
 
-"""The role of Users"""
-enum UserRole {
-  MODERATOR
-  USER
+input UpdateEventInput {
+  channelId: String!
+  eventId: ID!
+  images: [String!]
+  startDate: DateTime!
+  text: String!
+  title: String!
+}
+
+input UpdateLikeInput {
+  postId: String!
+}
+
+input UpdatePlatFormRulesInput {
+  platFormRulesId: ID!
+  rules: String
+  title: String!
+}
+
+input UpdatePostInput {
+  body: String!
+  channelId: String!
+  images: [String!]
+  postId: ID!
 }

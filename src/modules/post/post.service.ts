@@ -2,20 +2,20 @@ import { BadRequestException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm'
 
-import { EntityManager, Repository } from 'typeorm'
+import { Brackets, EntityManager, Repository } from 'typeorm'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { uuid } from 'uuidv4'
 
 import { AdminService } from '@app/admin'
-import { SuccessResponse } from '@app/common'
 import { AwsS3ClientService } from '@app/aws-s3-client'
 import { ChannelService } from '@app/channel'
 import { CustomerUserService } from '@app/customer-user'
+import { JWT_STRATEGY_NAME, JwtUserPayload, SuccessResponse } from '@app/common'
 import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
+import { CreatePostInput, ListPostsInput, UpdatePostInput } from './dto/inputs'
 import { Post } from './entities'
-import { CreatePostInput } from './dto/inputs'
 
 @Injectable()
 export class PostService {
@@ -33,7 +33,17 @@ export class PostService {
   // Private Methods
 
   // Public Methods
-  async getPostById(id: string): Promise<Post> {
+
+  async getPostById(id: string, userId: string): Promise<Post> {
+    const findPosts = await this.postRepository.findOne({
+      where: { id, createdBy: userId }
+    })
+    if (!findPosts) throw new BadRequestException('Post with the provided ID does not exist')
+
+    return findPosts
+  }
+
+  async findFromAllPost(id: string): Promise<Post> {
     const findPosts = await this.postRepository.findOne({
       where: { id }
     })
@@ -68,21 +78,90 @@ export class PostService {
     return urls
   }
 
+  async getPostsWithPagination(
+    listPostsInput: ListPostsInput,
+    user: JwtUserPayload
+  ): Promise<[Post[], number, number, number]> {
+    const { limit, offset, filter, customerId, userFeed, channelId } = listPostsInput
+    const { search } = filter || {}
+    const { userId, type } = user || {}
+
+    try {
+      const queryBuilder = this.postRepository.createQueryBuilder('posts')
+
+      if (search) {
+        queryBuilder.andWhere(
+          new Brackets(qb => {
+            qb.where('LOWER(posts.body) LIKE LOWER(:search)', { search: `%${search}%` })
+          })
+        )
+      }
+
+      queryBuilder
+        .leftJoinAndSelect('posts.likes', 'likes')
+        .leftJoinAndSelect('posts.customer', 'customer')
+        .leftJoinAndSelect('posts.comments', 'comments')
+        .leftJoinAndSelect('comments.user', 'userComments')
+        .leftJoinAndSelect('likes.user', 'userlikes')
+        .leftJoinAndSelect('posts.channel', 'channel')
+        .orderBy('posts.createdDate', 'DESC')
+        .take(limit)
+        .skip(offset)
+
+      if (channelId) {
+        queryBuilder.andWhere('channel.id = :channelId', { channelId })
+      } else if (type === JWT_STRATEGY_NAME.CUSTOMER) {
+        if (userFeed) {
+          queryBuilder.innerJoin('channel.members', 'cm', 'cm.customer.id = :userId', { userId })
+        } else if (customerId) {
+          const channelQueryBuilder = await this.channelService.channelQuerBuilder()
+          const commonChannelsSubQuery = channelQueryBuilder
+            .innerJoin('channels.members', 'cm1')
+            .innerJoin(
+              'channels.members',
+              'cm2',
+              'cm1.customer.id = :userId AND cm2.customer.id = :customerId',
+              { userId, customerId }
+            )
+            .select('channels.id')
+
+          queryBuilder
+            .innerJoin('posts.channel', 'postChannel')
+            .innerJoin('posts.customer', 'user', 'user.id = :customerId', {
+              customerId
+            })
+            .andWhere('postChannel.id IN (' + commonChannelsSubQuery.getQuery() + ')')
+            .setParameters(commonChannelsSubQuery.getParameters())
+        } else {
+          queryBuilder.where('customer.id = :userId', { userId })
+        }
+      }
+
+      const [posts, total] = await queryBuilder.getManyAndCount()
+
+      return [posts, total, limit, offset]
+    } catch (error) {
+      throw new BadRequestException('Failed to find Post')
+    }
+  }
+
   // Resolver Mutation Methods
 
   async createPost(createPostInput: CreatePostInput, userId: string): Promise<SuccessResponse> {
-    const { channelId, customerId, ...rest } = createPostInput
+    const { channelId, ...rest } = createPostInput
 
-    let customer, channel
-    if (customerId) customer = await this.customerService.getCustomerById(customerId)
+    const checkChannelMemberExist = await this.channelService.checkChannelMemberByIdExist(
+      channelId,
+      userId
+    )
 
-    if (channelId) channel = await this.channelService.getChannelById(channelId)
+    if (!checkChannelMemberExist) throw new BadRequestException('Only channel members can post')
 
     try {
       await this.postRepository.save({
         ...rest,
-        channel: channel,
-        customer: { id: customer.id },
+        channel: { id: channelId },
+        customer: { id: userId },
         createdBy: userId
       })
     } catch (error) {
@@ -90,5 +169,33 @@ export class PostService {
     }
 
     return { success: true, message: 'Post Created' }
+  }
+
+  async updatePost(updatePostInput: UpdatePostInput, userId: string): Promise<SuccessResponse> {
+    const { channelId, postId, ...rest } = updatePostInput
+
+    const post = await this.getPostById(postId, userId)
+
+    const channel = await this.channelService.getChannelById(channelId)
+
+    const checkChannelMemberExist = await this.channelService.checkChannelMemberByIdExist(
+      channel.id,
+      userId
+    )
+    if (!checkChannelMemberExist) throw new BadRequestException('Only channel members can post')
+
+    try {
+      await this.postRepository.update(post.id, {
+        ...rest,
+        channel: channel,
+        customer: { id: userId },
+        updatedBy: userId,
+        updatedDate: new Date()
+      })
+    } catch (error) {
+      throw new BadRequestException('Failed to update post')
+    }
+
+    return { success: true, message: 'Post Updated' }
   }
 }

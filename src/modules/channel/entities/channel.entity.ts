@@ -2,12 +2,13 @@ import { ObjectType, Field, ID, registerEnumType, Int } from '@nestjs/graphql'
 
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 
+import { Customer } from '@app/customer-user/entities'
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
+import { Events } from '@app/events/entities'
+import { Post } from '@app/post/entities'
 
 import { ChannelStatus } from '../channel.constants'
 import { ChannelMember } from './channel-members.entity'
-import { Post } from '@app/post/entities'
-import { Customer } from '@app/customer-user/entities'
 
 registerEnumType(ChannelStatus, {
   name: 'ChannelStatus',
@@ -78,22 +79,29 @@ export class Channel extends CustomBaseEntity {
   @Field(() => [ChannelMember], { nullable: true })
   @OneToMany(() => ChannelMember, channelMember => channelMember.channel, {
     eager: true,
-    nullable: true,
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE'
+    nullable: true
   })
   members: ChannelMember[]
 
   @Field(() => [Post], { nullable: true })
   @OneToMany(() => Post, post => post.channel, {
     eager: true,
-    nullable: true,
-    cascade: true
+    nullable: true
   })
   posts: Post[]
 
+  @Field(() => [Events], { nullable: true })
+  @OneToMany(() => Events, events => events.channel, {
+    eager: true,
+    nullable: true
+  })
+  events: Events[]
+
   @Field(() => Customer)
-  @ManyToOne(() => Customer, { eager: true })
+  @ManyToOne(() => Customer, {
+    eager: true,
+    onDelete: 'SET NULL'
+  })
   @JoinColumn({ name: 'moderator_id', referencedColumnName: 'id' })
   moderator!: Customer
 }

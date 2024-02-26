@@ -28,6 +28,18 @@ export class CreateChannelInput {
   @MaxLength(500, { message: 'Channel About name cannot be longer than 500 characters' })
   about?: string
 
+  @IsString({ message: 'image should be a string' })
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  @MaxLength(250, { message: 'image should not exceed 50 characters' })
+  image?: string
+
+  @IsString({ message: 'backgroundImage should be a string' })
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  @MaxLength(250, { message: 'backgroundImage should not exceed 50 characters' })
+  backgroundImage?: string
+
   @Field(() => Int, { nullable: true, defaultValue: 0 })
   @IsNumber({}, { message: 'Channel Price price must be a number' })
   @Min(0, { message: 'Minimum can not be negative' })

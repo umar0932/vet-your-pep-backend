@@ -1,22 +1,22 @@
 FROM node:18-alpine
 
-WORKDIR /app
+# Create app directory
+WORKDIR /usr/src/app
 
-COPY package.json package-lock.json /app/
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+COPY package*.json ./
 
-RUN npm install && \
-    rm -rf /tmp/* /var/tmp/*
+# Install app dependencies with legacy peer dependencies
+RUN npm install --legacy-peer-deps
 
-COPY ./docker-utils/entrypoint/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+# Bundle app source
+COPY . .
 
-COPY . /app
-
+# Creates a "dist" folder with the production build
 RUN npm run build
 
-EXPOSE 3000
+# Expose the port on which the app will run
+EXPOSE 3001
 
-USER node
-
-ENV TYPEORM_MIGRATION=ENABLE
-ENV NPM_INSTALL=DISABLE
-CMD npm run start:prod
+# Start the server using the production build
+CMD ["npm", "run", "start:prod"]

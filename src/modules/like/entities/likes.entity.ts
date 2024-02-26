@@ -4,26 +4,28 @@ import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
 import { Customer } from '@app/customer-user/entities'
-import { Post } from './post.entity'
+import { Post } from '@app/post/entities'
 
 @Entity({ name: 'likes' })
 @ObjectType()
 export class Likes extends CustomBaseEntity {
   // Primary key
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   @Field(() => ID)
-  id: number
+  id: string
 
   // Relations
 
-  @Field(() => String)
+  @Field(() => Customer, { nullable: true })
   @ManyToOne(() => Customer, (user: Customer) => user.likes, {
+    eager: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE'
   })
   @JoinColumn({ name: 'user_id' })
   user: Customer
 
+  @Field(() => Post, { nullable: true })
   @ManyToOne(() => Post, (post: Post) => post.likes, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE'

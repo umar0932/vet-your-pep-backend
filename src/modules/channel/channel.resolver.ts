@@ -5,7 +5,12 @@ import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
 import { Channel } from './entities'
 import { ChannelService } from './channel.service'
-import { CreateChannelInput, ListChannelsInput, UpdateChannelInput } from './dto/inputs'
+import {
+  CreateChannelInput,
+  LeaveChannelInput,
+  ListChannelsInput,
+  UpdateChannelInput
+} from './dto/inputs'
 import { ListChannelsResponse } from './dto/args'
 
 @Resolver(() => Channel)
@@ -15,7 +20,7 @@ export class ChannelResolver {
   // Queries
 
   @Query(() => Channel, {
-    description: 'This will create get a Channel'
+    description: 'To get a Channel'
   })
   @Allow()
   async getChannelById(@Args('input') channelId: string): Promise<Partial<Channel>> {
@@ -31,37 +36,23 @@ export class ChannelResolver {
   }
 
   @Query(() => ListChannelsResponse, {
-    description: 'The List of Channel user have joined with Pagination and filters'
+    description: 'The List of Channels user have joined or not with Pagination and filters'
   })
   @Allow()
-  async getMyChannels(
+  async getChannels(
     @Args('input') args: ListChannelsInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<ListChannelsResponse> {
     const { limit, joined, offset, filter } = args
-    const [channels, count] = await this.channelsService.getMyChannelsWithPagination(
+    const [channels, count] = await this.channelsService.getChannelsWithPagination(
       {
         limit,
         joined,
         offset,
         filter
       },
-      user.userId
+      user
     )
-    return { results: channels, totalRows: count, limit, offset }
-  }
-
-  @Query(() => ListChannelsResponse, {
-    description: 'The List of Channel with Pagination and filters'
-  })
-  @Allow()
-  async listChannels(@Args('input') args: ListChannelsInput): Promise<ListChannelsResponse> {
-    const { limit, offset, filter } = args
-    const [channels, count] = await this.channelsService.findAllChannelsWithPagination({
-      limit,
-      offset,
-      filter
-    })
     return { results: channels, totalRows: count, limit, offset }
   }
 
@@ -75,11 +66,11 @@ export class ChannelResolver {
     @Args('input') createChannelInput: CreateChannelInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    return await this.channelsService.createChannel(createChannelInput, user.userId)
+    return await this.channelsService.createChannel(createChannelInput, user)
   }
 
   @Mutation(() => SuccessResponse, {
-    description: 'This will create new Channel'
+    description: 'To Join new Channel'
   })
   @Allow()
   async joinChannel(
@@ -90,13 +81,24 @@ export class ChannelResolver {
   }
 
   @Mutation(() => SuccessResponse, {
-    description: 'This will create new Channel'
+    description: 'This will update Channel'
   })
   @Allow()
   async updateChannel(
     @Args('input') updateChannelInput: UpdateChannelInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    return await this.channelsService.updateChannel(updateChannelInput, user.userId, user.type)
+    return await this.channelsService.updateChannel(updateChannelInput, user)
+  }
+
+  @Mutation(() => SuccessResponse, {
+    description: 'Leave Channel'
+  })
+  @Allow()
+  async leaveChannel(
+    @Args('input') leaveChannelInput: LeaveChannelInput,
+    @CurrentUser() user: JwtUserPayload
+  ): Promise<SuccessResponse> {
+    return await this.channelsService.leaveChannel(leaveChannelInput, user)
   }
 }

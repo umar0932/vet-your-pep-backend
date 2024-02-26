@@ -39,7 +39,6 @@ import {
   CustomerLoginOrRegisterResponse,
   CustomerWithoutPasswordResponse
 } from './dto/args'
-import { UserRole } from './customer-user.constants'
 
 @Injectable()
 export class CustomerUserService {
@@ -50,7 +49,7 @@ export class CustomerUserService {
     private customerRepository: Repository<Customer>,
     @InjectRepository(CustomerFollower)
     private customerFollowerRepository: Repository<CustomerFollower>,
-    @InjectEntityManager() private readonly manager: EntityManager,
+    @InjectEntityManager() private readonly entityManager: EntityManager,
     @Inject(forwardRef(() => PaymentService))
     private paymentService: PaymentService,
     private jwtService: JwtService,
@@ -94,35 +93,34 @@ export class CustomerUserService {
   }
 
   private async updateFollowerCounts(
-    followerId: string,
-    following: Customer,
+    transactionalManager: EntityManager,
+    currentUserId: string,
+    userToFollow: Customer,
     method: string
   ): Promise<void> {
-    return this.manager.transaction(async transactionalManager => {
-      const follower = await this.getCustomerById(followerId)
-      try {
-        const { totalFollowers } = following
-        const { totalFollowings } = follower
+    const currentUserFollowing = await this.getCustomerById(currentUserId)
+    try {
+      const { totalFollowers } = userToFollow
+      const { totalFollowings } = currentUserFollowing
 
-        if (method === 'follow') {
-          await transactionalManager.update(Customer, follower.id, {
-            totalFollowers: Number(totalFollowers || 0) + 1
-          })
-          await transactionalManager.update(Customer, following.id, {
-            totalFollowings: Number(totalFollowings || 0) + 1
-          })
-        } else if (method === 'unfollow') {
-          await transactionalManager.update(Customer, follower.id, {
-            totalFollowers: Math.max(Number(totalFollowers || 0) - 1, 0)
-          })
-          await transactionalManager.update(Customer, following.id, {
-            totalFollowings: Math.max(Number(totalFollowings || 0) - 1, 0)
-          })
-        } else throw new BadRequestException('Invalid method.')
-      } catch (error) {
-        throw new BadRequestException('Error updating follower counts.')
-      }
-    })
+      if (method === 'follow') {
+        await transactionalManager.update(Customer, userToFollow.id, {
+          totalFollowers: Number(totalFollowers || 0) + 1
+        })
+        await transactionalManager.update(Customer, currentUserFollowing.id, {
+          totalFollowings: Number(totalFollowings || 0) + 1
+        })
+      } else if (method === 'unfollow') {
+        await transactionalManager.update(Customer, userToFollow.id, {
+          totalFollowers: Math.max(Number(totalFollowers || 0) - 1, 0)
+        })
+        await transactionalManager.update(Customer, currentUserFollowing.id, {
+          totalFollowings: Math.max(Number(totalFollowings || 0) - 1, 0)
+        })
+      } else throw new BadRequestException('Invalid method.')
+    } catch (error) {
+      throw new BadRequestException('Error updating following counts.')
+    }
   }
 
   // Public Methods
@@ -173,17 +171,6 @@ export class CustomerUserService {
     return this.jwtService.sign(payload)
   }
 
-  async getModeratorById(id: string): Promise<Customer> {
-    if (!id) throw new BadRequestException('Moderator Id is invalid')
-    const findModeratorById = await this.customerRepository.findOne({
-      where: { id, role: UserRole.MODERATOR, isActive: true }
-    })
-    if (!findModeratorById)
-      throw new BadRequestException('Moderator with the provided ID does not exist')
-
-    return findModeratorById
-  }
-
   async isValidPwd(pwd: string): Promise<boolean> {
     const checkPwd = isValidPassword(pwd)
 
@@ -205,7 +192,7 @@ export class CustomerUserService {
   }
 
   async saveProviderAndCustomer(customer: Partial<Customer>, provider: Partial<SocialProvider>) {
-    return this.manager.transaction(async transactionalManager => {
+    return this.entityManager.transaction(async transactionalManager => {
       const createdCustomer = transactionalManager.create(Customer, customer)
       const savedCustomer = await transactionalManager.save(createdCustomer)
       await transactionalManager.save(SocialProvider, {
@@ -241,7 +228,7 @@ export class CustomerUserService {
     const { email, search } = filter || {}
 
     try {
-      const queryBuilder = await this.customerRepository.createQueryBuilder('customer_user')
+      const queryBuilder = this.customerRepository.createQueryBuilder('customer_user')
 
       email && queryBuilder.andWhere('customer_user.email = :email', { email })
 
@@ -303,31 +290,52 @@ export class CustomerUserService {
   }
 
   async getFollowers(customerId: string): Promise<Customer[]> {
-    const followers = await this.customerFollowerRepository.find({
-      where: { following: { id: customerId } },
-      relations: ['followers']
-    })
-    return followers.map(follower => follower.followers)
+    try {
+      const followers = await this.customerFollowerRepository.find({
+        where: { following: { id: customerId } },
+        relations: ['followers']
+      })
+      return followers.map(follower => follower.followers)
+    } catch (error) {
+      throw new BadRequestException('Failed to find Users')
+    }
   }
 
   async getFollowing(customerId: string): Promise<Customer[]> {
-    const following = await this.customerFollowerRepository.find({
-      where: { followers: { id: customerId } },
-      relations: ['following']
+    try {
+      const following = await this.customerFollowerRepository.find({
+        where: { followers: { id: customerId } },
+        relations: ['following']
+      })
+      return following.map(followTo => followTo.following)
+    } catch (error) {
+      throw new BadRequestException('Failed to find Users')
+    }
+  }
+
+  async isFollowing(currentUserId: string, otherCustomerId: string): Promise<boolean> {
+    const followRelationship = await this.customerFollowerRepository.findOne({
+      where: { followers: { id: currentUserId }, following: { id: otherCustomerId } }
     })
-    return following.map(followTo => followTo.following)
+    return !!followRelationship
   }
 
   async searchCustomers(search: string): Promise<[Customer[], number]> {
     try {
-      const queryBuilder = await this.customerRepository.createQueryBuilder('customer_user')
+      const queryBuilder = this.customerRepository.createQueryBuilder('customer_user')
 
       if (search) {
         queryBuilder.andWhere(
           new Brackets(qb => {
-            qb.where('LOWER(customer_user.email) LIKE LOWER(:search)', {
+            qb.where('LOWER(customer_user.firstName) LIKE LOWER(:search)', {
               search: `%${search}%`
             })
+              .orWhere('LOWER(customer_user.lastName) LIKE LOWER(:search)', {
+                search: `%${search}%`
+              })
+              .orWhere('LOWER(customer_user.email) LIKE LOWER(:search)', {
+                search: `%${search}%`
+              })
           })
         )
       }
@@ -380,11 +388,13 @@ export class CustomerUserService {
     if (checkCustomerEmail)
       throw new BadRequestException('User is already registered with other account')
 
+    const name = `${firstName} ${lastName}`
     try {
+      const stripeCustomer = await this.paymentService.createStripeCustomer(name, email)
       const randomPassword = await randomStringGenerator()
       const pwd = await encodePassword(randomPassword)
       const customer: Partial<Customer> = await this.saveProviderAndCustomer(
-        { email, firstName, lastName, password: pwd },
+        { email, firstName, lastName, password: pwd, stripeCustomerId: stripeCustomer.id },
         { provider, socialId }
       )
 
@@ -417,43 +427,23 @@ export class CustomerUserService {
     return this.handleCustomerLogin(currentUser)
   }
 
-  async followCustomer(followerId: string, followingId: string): Promise<SuccessResponse> {
-    const following = await this.getCustomerById(followingId)
+  async followCustomer(currentUserId: string, customerId: string): Promise<SuccessResponse> {
+    const userToFollow = await this.getCustomerById(customerId)
 
-    const follower = await this.customerFollowerRepository.findOne({
-      where: {
-        followers: { id: followerId },
-        following: { id: followingId }
-      }
-    })
+    const checkFollowerExistbyId = await this.isFollowing(currentUserId, customerId)
 
-    if (follower) throw new BadRequestException('Already following.')
+    if (checkFollowerExistbyId) throw new BadRequestException('Already following.')
 
-    await this.customerFollowerRepository.save({
-      followers: { id: followerId },
-      following: following
-    })
-
-    await this.updateFollowerCounts(followerId, following, 'follow')
-
-    return { success: true, message: 'Following successfully' }
-  }
-
-  async makeModerator(moderatorId: string, adminId: string): Promise<SuccessResponse> {
-    await this.adminService.getAdminById(adminId)
-
-    const moderator = await this.getCustomerById(moderatorId)
-
-    try {
-      await this.customerRepository.update(moderator.id, {
-        role: UserRole.MODERATOR,
-        updatedBy: adminId,
-        updatedDate: new Date()
+    return this.entityManager.transaction(async transactionalManager => {
+      await transactionalManager.save(CustomerFollower, {
+        followers: { id: currentUserId },
+        following: { id: customerId }
       })
-    } catch (e) {
-      throw new BadRequestException('Failed to update user role')
-    }
-    return { success: true, message: 'User role has been updated to moderator' }
+
+      await this.updateFollowerCounts(transactionalManager, currentUserId, userToFollow, 'follow')
+
+      return { success: true, message: 'Following successfully' }
+    })
   }
 
   async saveMediaUrl(userId: string, fileName: string): Promise<boolean> {
@@ -468,23 +458,21 @@ export class CustomerUserService {
     return false
   }
 
-  async unfollowCustomer(followerId: string, followingId: string): Promise<SuccessResponse> {
-    const following = await this.getCustomerById(followingId)
+  async unfollowCustomer(currentUserId: string, otherCustomerId: string): Promise<SuccessResponse> {
+    const userToFollow = await this.getCustomerById(otherCustomerId)
 
-    const follower = await this.customerFollowerRepository.findOne({
-      where: {
-        followers: { id: followerId },
-        following: { id: followingId }
-      }
+    const followRelationship = await this.customerFollowerRepository.findOne({
+      where: { followers: { id: currentUserId }, following: { id: otherCustomerId } }
     })
 
-    if (!follower) throw new NotFoundException('Not following.')
+    if (!followRelationship) throw new NotFoundException('Not following.')
+    return this.entityManager.transaction(async transactionalManager => {
+      await transactionalManager.remove(followRelationship)
 
-    await this.customerFollowerRepository.remove(follower)
+      await this.updateFollowerCounts(transactionalManager, currentUserId, userToFollow, 'unfollow')
 
-    // Update counts
-    await this.updateFollowerCounts(followerId, following, 'unfollow')
-    return { success: true, message: 'Unfollowed successfully' }
+      return { success: true, message: 'Unfollowed successfully' }
+    })
   }
 
   async updateCustomerData(

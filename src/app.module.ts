@@ -11,8 +11,13 @@ import { join } from 'path'
 import { AdminModule } from '@app/admin'
 import { AwsS3ClientModule } from '@app/aws-s3-client'
 import { ChannelsModule } from '@app/channel'
+import { ChatModule } from '@app/chat'
+import { CommentModule } from '@app/comments'
 import { CustomerUserModule } from '@app/customer-user'
+import { EventModule } from '@app/events'
+import { LikeModule } from '@app/like'
 import { PaymentModule } from '@app/payment'
+import { PlatFormRulesModule } from '@app/platform-rules'
 import { PostModule } from '@app/post'
 
 import { dataSourceOptions } from 'db/data-source'
@@ -51,11 +56,16 @@ const env = `${process.env.NODE_ENV}`
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
     AdminModule,
+    CustomerUserModule,
     AwsS3ClientModule,
     ChannelsModule,
-    CustomerUserModule,
+    ChatModule,
+    CommentModule,
+    LikeModule,
     PaymentModule,
-    PostModule
+    PostModule,
+    EventModule,
+    PlatFormRulesModule
   ]
 })
 export class AppModule {}
