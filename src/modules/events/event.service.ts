@@ -11,7 +11,7 @@ import { AdminService } from '@app/admin'
 import { AwsS3ClientService } from '@app/aws-s3-client'
 import { ChannelService } from '@app/channel'
 import { CustomerUserService } from '@app/customer-user'
-import { JwtUserPayload, SuccessResponse } from '@app/common'
+import { JWT_STRATEGY_NAME, JwtUserPayload, SuccessResponse } from '@app/common'
 import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
 import { CreateEventInput, ListEventsInput, UpdateEventInput } from './dto/inputs'
@@ -99,12 +99,21 @@ export class EventService {
     listEventsInput: ListEventsInput,
     user: JwtUserPayload
   ): Promise<[Events[], number, number, number]> {
-    await this.adminService.adminOnlyAccess(user.type)
     const { limit, offset, filter, channelId } = listEventsInput
     const { search } = filter || {}
+    const { userId, type } = user || {}
 
     try {
       const queryBuilder = this.eventRepository.createQueryBuilder('events')
+
+      queryBuilder.take(limit).skip(offset).leftJoinAndSelect('events.channel', 'channel')
+
+      if (channelId) queryBuilder.andWhere('channel.id = :channelId', { channelId })
+      if (type === JWT_STRATEGY_NAME.CUSTOMER) {
+        queryBuilder
+          .leftJoinAndSelect('channel.members', 'cm')
+          .where('cm.customer.id = :userId', { userId })
+      }
 
       if (search) {
         queryBuilder.andWhere(
@@ -113,10 +122,6 @@ export class EventService {
           })
         )
       }
-
-      queryBuilder.take(limit).skip(offset).leftJoinAndSelect('events.channel', 'channel')
-
-      if (channelId) queryBuilder.andWhere('channel.id = :channelId', { channelId })
 
       const [events, total] = await queryBuilder.getManyAndCount()
 
