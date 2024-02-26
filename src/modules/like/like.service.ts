@@ -1,13 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm'
 
-import { EntityManager, Repository } from 'typeorm'
+import { Brackets, EntityManager, Repository } from 'typeorm'
 
 import { CustomerUserService } from '@app/customer-user'
+import { JWT_STRATEGY_NAME, JwtUserPayload } from '@app/common'
 import { Post } from '@app/post/entities'
 import { PostService } from '@app/post'
 
-import { CreateLikeInput, UpdateLikeInput } from './dto/inputs'
+import { CreateLikeInput, ListLikesInput, UpdateLikeInput } from './dto/inputs'
 import { Likes } from './entities'
 
 @Injectable()
@@ -70,6 +71,52 @@ export class LikeService {
   }
 
   // Resolver Query Methods
+
+  async getLikesWithPagination(
+    listPostsInput: ListLikesInput,
+    user: JwtUserPayload
+  ): Promise<[Likes[], number, number, number]> {
+    const { limit = 10, offset = 0, filter, customerId, postId } = listPostsInput
+    const { search } = filter || {}
+    const { userId, type } = user || {}
+
+    try {
+      const queryBuilder = this.likeRepository.createQueryBuilder('likes')
+
+      queryBuilder
+        .leftJoinAndSelect('likes.post', 'post')
+        .leftJoinAndSelect('post.customer', 'customer')
+        .leftJoinAndSelect('likes.user', 'userlikes')
+        .leftJoinAndSelect('post.channel', 'channel')
+        .orderBy('likes.createdDate', 'DESC')
+        .take(limit)
+        .skip(offset)
+
+      if (postId) {
+        queryBuilder.andWhere('post.id = :postId', { postId })
+      } else if (type === JWT_STRATEGY_NAME.ADMIN) {
+        if (customerId) queryBuilder.where('userlikes.id = :customerId', { customerId })
+      } else queryBuilder.where('userlikes.id = :userId', { userId })
+
+      if (search) {
+        queryBuilder.andWhere(
+          new Brackets(qb => {
+            qb.where('LOWER(userlikes.firstName) LIKE LOWER(:search)', {
+              search: `%${search}%`
+            }).orWhere('LOWER(userlikes.lastName) LIKE LOWER(:search)', {
+              search: `%${search}%`
+            })
+          })
+        )
+      }
+
+      const [likes, total] = await queryBuilder.getManyAndCount()
+
+      return [likes, total, limit, offset]
+    } catch (error) {
+      throw new BadRequestException('Failed to find like')
+    }
+  }
 
   // Resolver Mutation Methods
 

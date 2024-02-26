@@ -82,7 +82,7 @@ export class PostService {
     listPostsInput: ListPostsInput,
     user: JwtUserPayload
   ): Promise<[Post[], number, number, number]> {
-    const { limit, offset, filter, myPosts, customerId, userFeed, channelId } = listPostsInput
+    const { limit, offset, filter, customerId, userFeed, channelId } = listPostsInput
     const { search } = filter || {}
     const { userId, type } = user || {}
 
@@ -113,8 +113,6 @@ export class PostService {
       } else if (type === JWT_STRATEGY_NAME.CUSTOMER) {
         if (userFeed) {
           queryBuilder.innerJoin('channel.members', 'cm', 'cm.customer.id = :userId', { userId })
-        } else if (myPosts) {
-          queryBuilder.where('customer.id = :userId', { userId })
         } else if (customerId) {
           const channelQueryBuilder = await this.channelService.channelQuerBuilder()
           const commonChannelsSubQuery = channelQueryBuilder
@@ -135,7 +133,7 @@ export class PostService {
             .andWhere('postChannel.id IN (' + commonChannelsSubQuery.getQuery() + ')')
             .setParameters(commonChannelsSubQuery.getParameters())
         } else {
-          await this.adminService.adminOnlyAccess(type)
+          queryBuilder.where('customer.id = :userId', { userId })
         }
       }
 

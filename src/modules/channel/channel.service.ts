@@ -146,8 +146,6 @@ export class ChannelService {
     const { title, search } = filter || {}
     const { userId, type } = user || {}
 
-    if (type === JWT_STRATEGY_NAME.ADMIN) await this.adminService.getAdminById(userId)
-
     try {
       const queryBuilder = this.channelsRepository.createQueryBuilder('channels')
 

@@ -63,7 +63,8 @@ export class EventService {
 
   async getEventById(id: string): Promise<Events> {
     const findEvents = await this.eventRepository.findOne({
-      where: { id }
+      where: { id },
+      relations: ['channel']
     })
     if (!findEvents) throw new NotFoundException('Event with the provided ID does not exist')
 

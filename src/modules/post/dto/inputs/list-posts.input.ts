@@ -1,7 +1,8 @@
 import { Field, InputType } from '@nestjs/graphql'
 
-import { PostFilterInputs } from './post-filter.input'
 import { IsOptional, IsUUID } from 'class-validator'
+
+import { PostFilterInputs } from './post-filter.input'
 
 @InputType()
 export class ListPostsInput {
@@ -21,10 +22,6 @@ export class ListPostsInput {
 
   @Field({ name: 'limit', nullable: false })
   limit: number
-
-  @Field(() => Boolean, { nullable: true, defaultValue: false })
-  @IsOptional()
-  myPosts?: boolean
 
   @Field({ name: 'offset', nullable: true, defaultValue: 0 })
   offset: number

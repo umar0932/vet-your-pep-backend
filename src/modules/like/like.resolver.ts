@@ -1,16 +1,32 @@
-import { Resolver, Mutation, Args } from '@nestjs/graphql'
+import { Resolver, Mutation, Args, Query } from '@nestjs/graphql'
 
 import { Allow, CurrentUser, JwtUserPayload } from '@app/common'
 
-import { CreateLikeInput, UpdateLikeInput } from './dto/inputs'
+import { CreateLikeInput, ListLikesInput, UpdateLikeInput } from './dto/inputs'
 import { Likes } from './entities'
 import { LikeService } from './like.service'
+import { ListLikesResponse } from './dto/args'
 
 @Resolver(() => Likes)
 export class LikeResolver {
   constructor(private readonly likeService: LikeService) {}
 
   // Queries
+
+  @Query(() => ListLikesResponse, {
+    description: 'The List of likes with Pagination and filters'
+  })
+  @Allow()
+  async getLikes(
+    @Args('input') listLikesInput: ListLikesInput,
+    @CurrentUser() user: JwtUserPayload
+  ): Promise<ListLikesResponse> {
+    const [likes, count, limit, offset] = await this.likeService.getLikesWithPagination(
+      listLikesInput,
+      user
+    )
+    return { results: likes, totalRows: count, limit, offset }
+  }
 
   // Mutations
 

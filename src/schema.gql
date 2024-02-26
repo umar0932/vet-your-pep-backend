@@ -243,6 +243,10 @@ input LeaveChannelInput {
   customerId: String!
 }
 
+input LikeFilterInputs {
+  search: String
+}
+
 type Likes {
   createdBy: String
   createdDate: DateTime
@@ -307,6 +311,21 @@ type ListEventsResponse {
   totalRows: Float
 }
 
+input ListLikesInput {
+  customerId: String
+  filter: LikeFilterInputs
+  limit: Float
+  offset: Float
+  postId: String
+}
+
+type ListLikesResponse {
+  limit: Float
+  offset: Float
+  results: [Likes!]!
+  totalRows: Float
+}
+
 input ListPlatFormRulesInput {
   filter: PlatFormRulesFilterInputs
   limit: Float!
@@ -325,7 +344,6 @@ input ListPostsInput {
   customerId: String
   filter: PostFilterInputs
   limit: Float!
-  myPosts: Boolean = false
   offset: Float = 0
   userFeed: Boolean = false
 }
@@ -530,6 +548,9 @@ type Query {
 
   """Get the following of the authenticated customer"""
   getFollowing(customerId: String!): [Customer!]!
+
+  """The List of likes with Pagination and filters"""
+  getLikes(input: ListLikesInput!): ListLikesResponse!
 
   """Get other Customer Data"""
   getOtherCustomerData(customerId: String!): OtherCustomerDataResponse!

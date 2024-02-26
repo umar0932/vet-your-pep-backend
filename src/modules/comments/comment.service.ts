@@ -48,22 +48,21 @@ export class CommentService {
     try {
       const queryBuilder = this.commentRepository.createQueryBuilder('comments')
 
-      if (search) {
-        queryBuilder.andWhere(
-          new Brackets(qb => {
-            qb.where('LOWER(comments.contennt) LIKE LOWER(:search)', { search: `%${search}%` })
-          })
-        )
-      }
-
       queryBuilder
         .take(limit)
         .skip(offset)
         .leftJoinAndSelect('comments.post', 'post')
         .leftJoinAndSelect('comments.user', 'user')
 
-      if (type === JWT_STRATEGY_NAME.CUSTOMER)
-        await queryBuilder.where('user.id = :userId', { userId })
+      if (type === JWT_STRATEGY_NAME.CUSTOMER) queryBuilder.where('user.id = :userId', { userId })
+
+      if (search) {
+        queryBuilder.andWhere(
+          new Brackets(qb => {
+            qb.where('LOWER(comments.content) LIKE LOWER(:search)', { search: `%${search}%` })
+          })
+        )
+      }
 
       const [channels, total] = await queryBuilder.getManyAndCount()
 
