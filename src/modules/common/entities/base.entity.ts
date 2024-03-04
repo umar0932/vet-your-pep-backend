@@ -1,5 +1,7 @@
 import { Field, ObjectType } from '@nestjs/graphql'
+
 import { Column, CreateDateColumn, UpdateDateColumn } from 'typeorm'
+
 @ObjectType()
 export abstract class CustomBaseEntity {
   @Column({ length: 50, type: 'varchar', default: 'system', name: 'created_by' })

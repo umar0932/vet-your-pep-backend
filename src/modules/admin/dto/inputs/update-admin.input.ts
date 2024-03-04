@@ -1,4 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql'
+
 import { IsEmail, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator'
 
 @InputType()
@@ -25,7 +26,7 @@ export class UpdateAdminUserInput {
 
   @Field(() => String, { nullable: true })
   @IsUrl()
-  @IsString({ message: 'MediaUrl must be a string' })
+  @IsString({ message: 'Profile Image must be a string' })
   @IsOptional()
   profileImage?: string
 }

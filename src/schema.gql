@@ -291,7 +291,7 @@ input ListCustomersInputs {
 }
 
 type ListCustomersResponse {
-  limit: Float!
+  limit: Float
   offset: Float
   results: [Customer!]!
   totalRows: Float

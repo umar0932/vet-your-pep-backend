@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config'
 import { GraphQLError, GraphQLFormattedError } from 'graphql'
 import { GraphQLModule } from '@nestjs/graphql'
 import { HttpStatus, Module } from '@nestjs/common'
+// import { MailerModule } from '@nestjs-modules/mailer'
 import { TypeOrmModule } from '@nestjs/typeorm'
 
 import * as dotenv from 'dotenv'
@@ -16,6 +17,7 @@ import { CommentModule } from '@app/comments'
 import { CustomerUserModule } from '@app/customer-user'
 import { EventModule } from '@app/events'
 import { LikeModule } from '@app/like'
+import { MailModule } from '@app/mail/mail.module'
 import { PaymentModule } from '@app/payment'
 import { PlatFormRulesModule } from '@app/platform-rules'
 import { PostModule } from '@app/post'
@@ -65,7 +67,8 @@ const env = `${process.env.NODE_ENV}`
     PaymentModule,
     PostModule,
     EventModule,
-    PlatFormRulesModule
+    PlatFormRulesModule,
+    MailModule
   ]
 })
 export class AppModule {}

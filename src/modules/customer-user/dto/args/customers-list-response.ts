@@ -15,8 +15,8 @@ export class ListCustomersResponse {
   totalRows?: number
 
   @Field({ nullable: true, defaultValue: 0 })
-  offset: number
+  offset?: number
 
-  @Field({ nullable: false })
-  limit: number
+  @Field({ nullable: true })
+  limit?: number
 }
