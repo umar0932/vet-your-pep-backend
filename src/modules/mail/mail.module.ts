@@ -8,6 +8,7 @@ import { MailResolver } from './mail.resolver'
 @Module({
   controllers: [MailController],
   imports: [ConfigModule],
-  providers: [MailResolver, MailService]
+  providers: [MailResolver, MailService],
+  exports: [MailService]
 })
 export class MailModule {}

@@ -3,7 +3,14 @@ import { UseGuards } from '@nestjs/common'
 
 import { Profile } from 'passport'
 
-import { Allow, CurrentUser, JwtUserPayload, SocialProfile, SuccessResponse } from '@app/common'
+import {
+  Allow,
+  CurrentUser,
+  ForgotPasswordInput,
+  JwtUserPayload,
+  SocialProfile,
+  SuccessResponse
+} from '@app/common'
 import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
 import {
@@ -138,6 +145,18 @@ export class CustomerUserResolver {
     @CurrentUser() user: JwtUserPayload
   ): Promise<SuccessResponse> {
     return this.customerUserService.followCustomer(user.userId, customerId)
+  }
+
+  @Mutation(() => SuccessResponse, {
+    description: 'Send a password reset link'
+  })
+  @Allow()
+  async forgotPassword(
+    @Args('input') forgotPasswordInput: ForgotPasswordInput,
+    @Args('origin') origin?: string
+  ) {
+    console.log(forgotPasswordInput, origin)
+    // return this.customerUserService.requestPasswordReset(forgotPasswordInput.email, origin)
   }
 
   @Mutation(() => String, {

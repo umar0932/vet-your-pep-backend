@@ -10,10 +10,6 @@ export class SendEmailInput {
   // Relations
 
   @Field()
-  @IsNotEmpty({ message: 'From cannot be empty' })
-  from!: Address
-
-  @Field()
   @IsNotEmpty({ message: 'Recipients cannot be empty' })
   recipients!: Address[]
 
@@ -26,6 +22,10 @@ export class SendEmailInput {
   html!: string
 
   // Non Complusory Variables
+
+  @Field()
+  @IsNotEmpty({ message: 'From cannot be empty' })
+  from?: Address
 
   @Field()
   @IsOptional()

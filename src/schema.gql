@@ -238,6 +238,11 @@ type Events {
   updatedDate: DateTime
 }
 
+input ForgotPasswordInput {
+  email: String!
+  origin: String!
+}
+
 input LeaveChannelInput {
   channelId: String!
   customerId: String!
@@ -392,6 +397,9 @@ type Mutation {
 
   """This will follow a customer"""
   followCustomer(customerId: String!): SuccessResponse!
+
+  """Send a password reset link"""
+  forgotPassword(input: ForgotPasswordInput!, origin: String!): SuccessResponse!
 
   """To Join new Channel"""
   joinChannel(channelId: String!): SuccessResponse!

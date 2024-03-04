@@ -28,6 +28,7 @@ import {
   encodePassword,
   isValidPassword
 } from '@app/common'
+import { MailService } from '@app/mail'
 import { PaymentService } from '@app/payment'
 import { SocialProvider } from '@app/common/entities'
 import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
@@ -50,6 +51,7 @@ export class CustomerUserService {
     @InjectRepository(CustomerFollower)
     private customerFollowerRepository: Repository<CustomerFollower>,
     @InjectEntityManager() private readonly entityManager: EntityManager,
+    private mailService: MailService,
     @Inject(forwardRef(() => PaymentService))
     private paymentService: PaymentService,
     private jwtService: JwtService,
