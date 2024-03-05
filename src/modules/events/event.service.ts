@@ -15,7 +15,7 @@ import { JWT_STRATEGY_NAME, JwtUserPayload, SuccessResponse } from '@app/common'
 import { S3SignedUrlResponse } from '@app/aws-s3-client/dto/args'
 
 import { CreateEventInput, ListEventsInput, UpdateEventInput } from './dto/inputs'
-import { Events } from './entities'
+import { CalenderEvents, Events } from './entities'
 import { PartialEventResponse } from './dto/args'
 
 @Injectable()
@@ -25,6 +25,8 @@ export class EventService {
     private configService: ConfigService,
     private channelService: ChannelService,
     private customerService: CustomerUserService,
+    @InjectRepository(CalenderEvents)
+    private eventCalenderRepository: Repository<CalenderEvents>,
     @InjectRepository(Events)
     private eventRepository: Repository<Events>,
     @InjectEntityManager() private readonly manager: EntityManager,
@@ -35,10 +37,31 @@ export class EventService {
 
   // Public Methods
 
+  async checkEventCalenderByIdExist(eventId: string, userId: string): Promise<boolean> {
+    if (!userId) throw new BadRequestException('User Id is invalid')
+    const checkEventCalenderExist = await this.eventCalenderRepository.count({
+      where: { event: { id: eventId }, customer: { id: userId } }
+    })
+
+    if (checkEventCalenderExist > 0) return true
+
+    return false
+  }
+
   async getEventByName(title: string): Promise<boolean> {
     const findEventByName = await this.eventRepository.count({ where: { title } })
     if (findEventByName > 0) return true
     return false
+  }
+
+  async getEventCalenderById(eventId: string, userId: string): Promise<CalenderEvents> {
+    const isEventCalender = await this.eventCalenderRepository.findOne({
+      where: { event: { id: eventId }, customer: { id: userId } }
+    })
+    if (!isEventCalender)
+      throw new BadRequestException('Event Calender with the provided ID does not exist')
+
+    return isEventCalender
   }
 
   async findFromAllEvent(id: string): Promise<Events> {
@@ -99,7 +122,7 @@ export class EventService {
     listEventsInput: ListEventsInput,
     user: JwtUserPayload
   ): Promise<[Events[], number, number, number]> {
-    const { limit, offset, filter, channelId } = listEventsInput
+    const { limit, offset, filter, channelId, calenderEvents } = listEventsInput
     const { search } = filter || {}
     const { userId, type } = user || {}
 
@@ -109,6 +132,12 @@ export class EventService {
       queryBuilder.take(limit).skip(offset).leftJoinAndSelect('events.channel', 'channel')
 
       if (channelId) queryBuilder.andWhere('channel.id = :channelId', { channelId })
+      if (calenderEvents) {
+        queryBuilder
+          .leftJoin('events.calenderEvents', 'ce')
+          .andWhere('ce.customer.id = :userId', { userId })
+          .andWhere('ce.addToCalender = :addToCalender', { addToCalender: true })
+      }
       if (type === JWT_STRATEGY_NAME.CUSTOMER) {
         queryBuilder
           .leftJoinAndSelect('channel.members', 'cm')
@@ -134,6 +163,24 @@ export class EventService {
 
   // Resolver Mutation Methods
 
+  async addToCalender(eventId: string, user: JwtUserPayload): Promise<SuccessResponse> {
+    const event = await this.getEventById(eventId)
+
+    try {
+      await this.eventCalenderRepository.save({
+        addToCalender: true,
+        event,
+        customer: { id: user.userId },
+        createdBy: user.userId
+      })
+    } catch (error) {
+      console.log(error)
+      throw new BadRequestException('Failed to add Calender Event')
+    }
+
+    return { success: true, message: 'Event Added to the calender' }
+  }
+
   async createEvent(
     createEventInput: CreateEventInput,
     user: JwtUserPayload
@@ -158,6 +205,18 @@ export class EventService {
     }
 
     return { success: true, message: 'Event Created' }
+  }
+
+  async removeFromCalender(eventId: string, user: JwtUserPayload): Promise<SuccessResponse> {
+    const eventCalender = await this.getEventCalenderById(eventId, user.userId)
+
+    try {
+      await this.eventCalenderRepository.delete(eventCalender.id)
+    } catch (error) {
+      throw new BadRequestException('Failed to remove Calender Event')
+    }
+
+    return { success: true, message: 'Event removed from the calender' }
   }
 
   async updateEvent(

@@ -6,6 +6,10 @@ import { EventFilterInputs } from './event-filter.input'
 
 @InputType()
 export class ListEventsInput {
+  @Field(() => Boolean, { nullable: true, defaultValue: false })
+  @IsOptional()
+  calenderEvents?: boolean
+
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsUUID('4', { message: 'Invalid Channel UUID format' })

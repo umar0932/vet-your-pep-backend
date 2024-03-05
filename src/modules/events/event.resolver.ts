@@ -58,6 +58,17 @@ export class EventResolver {
   // Mutations
 
   @Mutation(() => SuccessResponse, {
+    description: 'This will add event to calender'
+  })
+  @Allow()
+  async addToCalender(
+    @Args('eventId') eventId: string,
+    @CurrentUser() user: JwtUserPayload
+  ): Promise<SuccessResponse> {
+    return await this.eventService.addToCalender(eventId, user)
+  }
+
+  @Mutation(() => SuccessResponse, {
     description: 'This will create new Event'
   })
   @Allow()
@@ -69,13 +80,24 @@ export class EventResolver {
   }
 
   @Mutation(() => SuccessResponse, {
+    description: 'This will remove event to calender'
+  })
+  @Allow()
+  async removeFromCalender(
+    @Args('eventId') eventId: string,
+    @CurrentUser() user: JwtUserPayload
+  ): Promise<SuccessResponse> {
+    return await this.eventService.removeFromCalender(eventId, user)
+  }
+
+  @Mutation(() => SuccessResponse, {
     description: 'This will update Event'
   })
   @Allow()
   async updateEvent(
-    @Args('input') createEventInput: UpdateEventInput,
+    @Args('input') updateEventInput: UpdateEventInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    return await this.eventService.updateEvent(createEventInput, user)
+    return await this.eventService.updateEvent(updateEventInput, user)
   }
 }

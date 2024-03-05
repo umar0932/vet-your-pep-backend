@@ -1,10 +1,11 @@
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql'
 
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 
 import { Channel } from '@app/channel/entities'
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
 
+import { CalenderEvents } from './calender-events.entity'
 import { EventLocationType } from '../event.constants'
 
 registerEnumType(EventLocationType, {
@@ -58,4 +59,11 @@ export class Events extends CustomBaseEntity {
   })
   @JoinColumn({ name: 'channel_id' })
   channel: Channel
+
+  @Field(() => [CalenderEvents], { nullable: true })
+  @OneToMany(() => CalenderEvents, eventCalender => eventCalender.event, {
+    eager: true,
+    nullable: true
+  })
+  calenderEvents?: CalenderEvents[]
 }

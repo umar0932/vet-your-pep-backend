@@ -6,6 +6,7 @@ import { Transform } from 'class-transformer'
 import { Channel, ChannelMember } from '@app/channel/entities'
 import { Comments } from '@app/comments/entities'
 import { CustomBaseEntity } from '@app/common/entities/base.entity'
+import { CalenderEvents } from '@app/events/entities'
 import { Likes } from '@app/like/entities'
 import { Post } from '@app/post/entities'
 import { SocialProvider } from '@app/common/entities'
@@ -87,6 +88,13 @@ export class Customer extends CustomBaseEntity {
     nullable: true
   })
   comments?: Comments[]
+
+  @Field(() => [CalenderEvents], { nullable: true })
+  @OneToMany(() => CalenderEvents, eventCalender => eventCalender.event, {
+    eager: true,
+    nullable: true
+  })
+  calenderEvents?: CalenderEvents[]
 
   @Field(() => [CustomerFollower], { nullable: true })
   @OneToMany(() => CustomerFollower, (uf: CustomerFollower) => uf.followers, {

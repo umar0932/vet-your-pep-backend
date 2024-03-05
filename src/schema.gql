@@ -27,6 +27,17 @@ type AdminLoginResponse {
   user: Admin!
 }
 
+type CalenderEvents {
+  addToCalender: Boolean!
+  createdBy: String
+  createdDate: DateTime
+  customer: Customer!
+  event: Events!
+  id: ID!
+  updatedBy: String
+  updatedDate: DateTime
+}
+
 type Channel {
   about: String
   backgroundImage: String
@@ -155,6 +166,7 @@ input CreatePostInput {
 }
 
 type Customer {
+  calenderEvents: [CalenderEvents!]
   cellPhone: String
   channelMembers: [Channel!]
   channels: [Channel!]
@@ -225,6 +237,7 @@ enum EventLocationType {
 }
 
 type Events {
+  calenderEvents: [CalenderEvents!]
   channel: Channel!
   createdBy: String
   createdDate: DateTime
@@ -303,6 +316,7 @@ type ListCustomersResponse {
 }
 
 input ListEventsInput {
+  calenderEvents: Boolean = false
   channelId: String
   filter: EventFilterInputs
   limit: Float!
@@ -371,6 +385,9 @@ input LoginCustomerInput {
 }
 
 type Mutation {
+  """This will add event to calender"""
+  addToCalender(eventId: String!): SuccessResponse!
+
   """Customer Social Registration"""
   continueWithSocialSite(input: RegisterOrLoginSocialInput!): CustomerLoginOrRegisterResponse!
 
@@ -415,6 +432,9 @@ type Mutation {
 
   """Customer Login"""
   loginAsCustomer(input: LoginCustomerInput!): CustomerLoginOrRegisterResponse!
+
+  """This will remove event to calender"""
+  removeFromCalender(eventId: String!): SuccessResponse!
 
   """This will save/update user profile image in DB"""
   saveCustomerMediaUrl(fileName: String!): String!
