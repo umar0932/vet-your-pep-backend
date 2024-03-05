@@ -19,7 +19,7 @@ export class CreateEventInput {
   @MaxLength(500, { message: 'Event text cannot be longer than 500 characters' })
   text!: string
 
-  @Field()
+  @Field(() => String)
   @IsNotEmpty({ message: 'Event title cannot be empty' })
   @IsString({ message: 'Event title must be a string' })
   @MaxLength(50, { message: 'Event title cannot be longer than 50 characters' })

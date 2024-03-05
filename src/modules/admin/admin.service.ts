@@ -6,16 +6,21 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
-import { JwtService } from '@nestjs/jwt'
 
 import { Repository } from 'typeorm'
 
+import { MailService } from '@app/mail'
+import { JwtService } from '@nestjs/jwt'
+
 import {
+  ForgotPasswordInput,
   JWT_STRATEGY_NAME,
   JwtDto,
+  ResetForgotPasswordInput,
   SuccessResponse,
   comparePassword,
   encodePassword,
+  generateOTP,
   isValidPassword
 } from '@app/common'
 
@@ -28,6 +33,7 @@ export class AdminService {
   constructor(
     @InjectRepository(Admin) private adminRepository: Repository<Admin>,
     private configService: ConfigService,
+    private mailService: MailService,
     private jwtService: JwtService
   ) {}
 
@@ -37,6 +43,12 @@ export class AdminService {
 
   async adminOnlyAccess(userType: string): Promise<void> {
     if (userType !== JWT_STRATEGY_NAME.ADMIN) throw new ForbiddenException('Only Admins Access')
+  }
+
+  async forgotPassword(email: string): Promise<Admin> {
+    const admin = await this.getAdminById(email)
+
+    return admin
   }
 
   async getAdminById(id: string): Promise<Admin> {
@@ -216,6 +228,51 @@ export class AdminService {
       })
     } catch (e) {
       throw new BadRequestException('Failed to update admin data')
+    }
+    return { success: true, message: 'Password of admin has been updated' }
+  }
+
+  async sendEmailForgotPassword(
+    forgotPasswordInput: ForgotPasswordInput
+  ): Promise<SuccessResponse> {
+    const { email } = forgotPasswordInput || {}
+
+    const customer = await this.forgotPassword(email)
+    const code = generateOTP()
+
+    try {
+      const encodedCode = await encodePassword(code)
+      await this.mailService.sendForgotPasswordEmail(customer.email, customer.firstName, code)
+      await this.adminRepository.update(customer.id, {
+        resetPaswordOTP: encodedCode,
+        updatedBy: customer.id,
+        updatedDate: new Date()
+      })
+    } catch (e) {
+      throw new BadRequestException('Failed to send forgot Email')
+    }
+    return { success: true, message: 'Forgot Email send' }
+  }
+
+  async resetPasswordCustomer(
+    resetForgotPasswordInput: ResetForgotPasswordInput
+  ): Promise<SuccessResponse> {
+    const { email, code, password } = resetForgotPasswordInput || {}
+    const admin = await this.forgotPassword(email)
+
+    if (admin?.resetPaswordOTP) {
+      const isValidCode = await this.validatePassword(code, admin.resetPaswordOTP)
+      if (!isValidCode) throw new BadRequestException('Code is Invalid')
+    }
+
+    try {
+      await this.adminRepository.update(admin.id, {
+        password,
+        updatedBy: admin.id,
+        updatedDate: new Date()
+      })
+    } catch (e) {
+      throw new BadRequestException('Failed to update admin password')
     }
     return { success: true, message: 'Password of admin has been updated' }
   }

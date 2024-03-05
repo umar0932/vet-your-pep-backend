@@ -10,8 +10,8 @@ export class MailController {
   @Post('/send-mail')
   async sendMail() {
     const sendEmailInput: SendEmailInput = {
-      from: { name: 'umer', address: 'support@vetyourpep.com' },
-      recipients: [{ name: 'Umer khalid', address: 'umar.khalid@chirptech.net' }],
+      from: 'support@vetyourpep.com',
+      recipients: 'umar.khalid@chirptech.net',
       subject: 'Testing email',
       html: '<p><strong>Umer khalid </strong> Welcome to Vet your pep </p>'
     }

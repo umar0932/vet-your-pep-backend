@@ -5,6 +5,7 @@ import { PassportModule } from '@nestjs/passport'
 import { TypeOrmModule } from '@nestjs/typeorm'
 
 import { JWTConfigTypes } from '@app/common'
+import { MailModule } from '@app/mail'
 
 import { Admin } from './entities'
 import { AdminResolver } from './admin.resolver'
@@ -25,7 +26,8 @@ import { JwtStrategy, LocalStrategy } from './strategy'
         return { ...jwtConfig }
       },
       inject: [ConfigService]
-    })
+    }),
+    MailModule
   ],
   providers: [AdminResolver, AdminService, JwtStrategy, LocalStrategy],
   exports: [AdminService]

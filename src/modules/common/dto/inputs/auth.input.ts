@@ -1,6 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql'
 
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator'
 
 @InputType()
 export class ForgotPasswordInput {
@@ -9,9 +9,18 @@ export class ForgotPasswordInput {
   @IsEmail({}, { message: 'Invalid email format' })
   @IsNotEmpty({ message: 'Email cannot be empty' })
   email!: string
+}
+
+@InputType()
+export class ResetForgotPasswordInput extends ForgotPasswordInput {
+  @Field(() => String)
+  @IsString({ message: 'Code must be a string' })
+  @IsNotEmpty({ message: 'Code cannot be empty' })
+  code!: string
 
   @Field(() => String)
-  @IsString({ message: 'Origin must be a string' })
-  @IsOptional()
-  origin?: string
+  @IsString({ message: 'Password must be a string' })
+  @IsNotEmpty({ message: 'Password cannot be empty' })
+  @MinLength(8, { message: 'Password must be at least 8 characters long' })
+  password!: string
 }

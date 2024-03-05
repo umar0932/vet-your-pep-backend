@@ -1,7 +1,6 @@
 import { ObjectType, Field, ID, Int } from '@nestjs/graphql'
 
 import { Column, Entity, Index, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
-import { Transform } from 'class-transformer'
 
 import { Channel, ChannelMember } from '@app/channel/entities'
 import { Comments } from '@app/comments/entities'
@@ -48,12 +47,15 @@ export class Customer extends CustomBaseEntity {
 
   @Column({ length: 20, name: 'cell_phone', nullable: true })
   @Field(() => String, { nullable: true })
-  @Transform(value => value.toString())
   cellPhone?: string
 
   @Column({ length: 250, name: 'profile_image', nullable: true })
   @Field(() => String, { nullable: true })
   profileImage?: string
+
+  @Column({ length: 150, name: 'reset_password_otp', nullable: true })
+  @Field(() => String, { nullable: true })
+  resetPaswordOTP?: string
 
   @Column({ length: 200, nullable: true, name: 'stripe_customer_id', unique: true })
   @Field(() => String, { nullable: true })
@@ -124,6 +126,7 @@ export class Customer extends CustomBaseEntity {
 
   @Field(() => SocialProvider, { nullable: true })
   @OneToOne(() => SocialProvider, socialProvider => socialProvider.customer, {
+    eager: true,
     nullable: true
   })
   socialProvider?: SocialProvider

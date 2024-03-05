@@ -1,6 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql'
 
-import { Address } from 'nodemailer/lib/mailer'
 import { IsNotEmpty, IsOptional } from 'class-validator'
 
 @InputType()
@@ -11,7 +10,7 @@ export class SendEmailInput {
 
   @Field()
   @IsNotEmpty({ message: 'Recipients cannot be empty' })
-  recipients!: Address[]
+  recipients!: string
 
   @Field(() => String)
   @IsNotEmpty({ message: 'Subject cannot be empty' })
@@ -25,7 +24,7 @@ export class SendEmailInput {
 
   @Field()
   @IsNotEmpty({ message: 'From cannot be empty' })
-  from?: Address
+  from?: string
 
   @Field()
   @IsOptional()

@@ -13,19 +13,19 @@ export class UpdateEventInput extends PickType(CreateEventInput, ['channelId', '
 
   // Non Complusory Variables
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString({ message: 'Event text must be a string' })
   @MaxLength(500, { message: 'Event text cannot be longer than 500 characters' })
   text?: string
 
-  @Field()
+  @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString({ message: 'Event title must be a string' })
   @MaxLength(50, { message: 'Event title cannot be longer than 50 characters' })
   title?: string
 
-  @Field(() => Date)
+  @Field(() => Date, { nullable: true })
   @IsOptional()
   @IsDate({ message: 'Invalid startDate date format' })
   startDate?: Date

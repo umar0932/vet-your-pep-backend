@@ -13,6 +13,7 @@ type Admin {
   password: String!
   platFormRules: [PlatFormRules!]
   profileImage: String
+  resetPaswordOTP: String
   updatedBy: String
   updatedDate: DateTime
 }
@@ -184,6 +185,7 @@ type Customer {
   password: String!
   posts: [Post!]
   profileImage: String
+  resetPaswordOTP: String
   socialProvider: SocialProvider
   stripeCustomerId: String
   totalFollowers: Int
@@ -253,7 +255,6 @@ type Events {
 
 input ForgotPasswordInput {
   email: String!
-  origin: String!
 }
 
 input LeaveChannelInput {
@@ -415,8 +416,11 @@ type Mutation {
   """This will follow a customer"""
   followCustomer(customerId: String!): SuccessResponse!
 
+  """Send a password reset link for Admin"""
+  forgotPasswordAdmin(input: ForgotPasswordInput!): SuccessResponse!
+
   """Send a password reset link"""
-  forgotPassword(input: ForgotPasswordInput!, origin: String!): SuccessResponse!
+  forgotPasswordCustomer(input: ForgotPasswordInput!): SuccessResponse!
 
   """To Join new Channel"""
   joinChannel(channelId: String!): SuccessResponse!
@@ -435,6 +439,12 @@ type Mutation {
 
   """This will remove event to calender"""
   removeFromCalender(eventId: String!): SuccessResponse!
+
+  """Reset Password for Admin"""
+  resetPasswordAdmin(input: ResetForgotPasswordInput!): SuccessResponse!
+
+  """Reset Password for Customer"""
+  resetPasswordCustomer(input: ResetForgotPasswordInput!): SuccessResponse!
 
   """This will save/update user profile image in DB"""
   saveCustomerMediaUrl(fileName: String!): String!
@@ -607,6 +617,12 @@ input RegisterOrLoginSocialInput {
   provider: SocialAuthProviders!
 }
 
+input ResetForgotPasswordInput {
+  code: String!
+  email: String!
+  password: String!
+}
+
 type S3SignedUrlResponse {
   fileName: String!
   signedUrl: String!
@@ -671,9 +687,9 @@ input UpdateEventInput {
   channelId: String!
   eventId: ID!
   images: [String!]
-  startDate: DateTime!
-  text: String!
-  title: String!
+  startDate: DateTime
+  text: String
+  title: String
 }
 
 input UpdateLikeInput {

@@ -8,6 +8,7 @@ import {
   CurrentUser,
   ForgotPasswordInput,
   JwtUserPayload,
+  ResetForgotPasswordInput,
   SocialProfile,
   SuccessResponse
 } from '@app/common'
@@ -150,13 +151,15 @@ export class CustomerUserResolver {
   @Mutation(() => SuccessResponse, {
     description: 'Send a password reset link'
   })
-  @Allow()
-  async forgotPassword(
-    @Args('input') forgotPasswordInput: ForgotPasswordInput,
-    @Args('origin') origin?: string
-  ) {
-    console.log(forgotPasswordInput, origin)
-    // return this.customerUserService.requestPasswordReset(forgotPasswordInput.email, origin)
+  async forgotPasswordCustomer(@Args('input') forgotPasswordInput: ForgotPasswordInput) {
+    return this.customerUserService.sendEmailForgotPassword(forgotPasswordInput)
+  }
+
+  @Mutation(() => SuccessResponse, {
+    description: 'Reset Password for Customer'
+  })
+  async resetPasswordCustomer(@Args('input') resetForgotPasswordInput: ResetForgotPasswordInput) {
+    return this.customerUserService.resetPasswordCustomer(resetForgotPasswordInput)
   }
 
   @Mutation(() => String, {

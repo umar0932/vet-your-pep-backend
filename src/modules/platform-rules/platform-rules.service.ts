@@ -99,12 +99,12 @@ export class PlatFormRulesService {
   }
 
   async updatePlatFormRule(
-    updateEventInput: UpdatePlatFormRulesInput,
+    updatePlatFormRulesInput: UpdatePlatFormRulesInput,
     user: JwtUserPayload
   ): Promise<PlatFormRules> {
     const { userId, type } = user || {}
     await this.adminService.adminOnlyAccess(type)
-    const { platFormRulesId, title, ...rest } = updateEventInput
+    const { platFormRulesId, title, ...rest } = updatePlatFormRulesInput
 
     const platFormRule = await this.getPlatFormRuleById(platFormRulesId)
 

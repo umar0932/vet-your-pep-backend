@@ -2,7 +2,6 @@ import { ConfigService } from '@nestjs/config'
 import { Injectable, Logger } from '@nestjs/common'
 
 import * as nodemailer from 'nodemailer'
-import { Address } from 'nodemailer/lib/mailer'
 import Mail from 'nodemailer/lib/mailer'
 
 import { Configuration } from '@config/configuration.interface'
@@ -48,11 +47,7 @@ export class MailService {
     } catch (error) {}
   }
 
-  sendForgotPasswordEmail = async (
-    recipients: Address[],
-    name: string,
-    code: number
-  ): Promise<void> => {
+  async sendForgotPasswordEmail(recipients: string, name: string, code: string): Promise<void> {
     const subject = 'OTP Verification'
     const html = `
         <p>Hi ${name},</p>
