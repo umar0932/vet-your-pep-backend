@@ -279,7 +279,7 @@ export class ChannelService {
     updateChannelInput: UpdateChannelInput,
     user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    const { id, title, ...rest } = updateChannelInput
+    const { id, moderatorId, title, ...rest } = updateChannelInput
     const { userId, type } = user || {}
 
     let channel
@@ -287,8 +287,12 @@ export class ChannelService {
       channel = await this.getChannelByModeratorId(id, userId)
     else channel = await this.getChannelById(id)
 
-    const channelByName = await this.getChannelsByName(title)
-    if (channelByName) throw new BadRequestException('Same Channel Name already exists')
+    if (moderatorId) await this.customerService.getCustomerById(moderatorId)
+
+    if (title) {
+      const channelByName = await this.getChannelsByName(title)
+      if (channelByName) throw new BadRequestException('Same Channel Name already exists')
+    }
 
     try {
       await this.channelsRepository.update(channel.id, {

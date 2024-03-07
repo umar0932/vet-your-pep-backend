@@ -230,8 +230,10 @@ export class EventService {
 
     const channel = await this.channelService.getChannelById(channelId)
 
-    const eventExists = channel.events.some(event => event.title === title)
-    if (eventExists) throw new BadRequestException('Event title already exists')
+    if (title) {
+      const eventExists = channel.events.some(event => event.title === title)
+      if (eventExists) throw new BadRequestException('Event title already exists')
+    }
 
     try {
       await this.eventRepository.update(eventId, {

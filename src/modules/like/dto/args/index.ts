@@ -1,1 +1,1 @@
-export * from './likes-list-response'
+export * from './list-likes-response'

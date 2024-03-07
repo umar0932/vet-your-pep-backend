@@ -1,1 +1,1 @@
-export * from './posts-list-response'
+export * from './list-posts-response'

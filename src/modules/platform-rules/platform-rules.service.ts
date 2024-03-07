@@ -108,8 +108,10 @@ export class PlatFormRulesService {
 
     const platFormRule = await this.getPlatFormRuleById(platFormRulesId)
 
-    const platFormRuleExists = await this.getPlatFormRuleByTitle(title)
-    if (platFormRuleExists) throw new BadRequestException('Platform rule title already exists')
+    if (title) {
+      const platFormRuleExists = await this.getPlatFormRuleByTitle(title)
+      if (platFormRuleExists) throw new BadRequestException('Platform rule title already exists')
+    }
 
     try {
       await this.platFormRulesRepository.update(platFormRule.id, {

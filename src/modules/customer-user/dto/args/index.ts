@@ -1,6 +1,6 @@
 export * from './customer-data-without-password-response'
 export * from './customer-email-update-response'
 export * from './customer-login-or-register-response'
-export * from './customers-list-response'
+export * from './list-customers-response'
 export * from './other-customer-data-response'
 export * from './search-customers.response'

@@ -1,1 +1,1 @@
-export * from './platform-rules-list-response'
+export * from './list-platform-rules-response'

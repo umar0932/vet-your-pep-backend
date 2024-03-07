@@ -340,8 +340,8 @@ input ListLikesInput {
 }
 
 type ListLikesResponse {
-  limit: Float
-  offset: Float
+  limit: Int
+  offset: Int
   results: [Likes!]!
   totalRows: Float
 }
@@ -664,8 +664,9 @@ input UpdateChannelInput {
   backgroundImage: String
   id: ID!
   image: String
+  moderatorId: String
   rules: String
-  title: String!
+  title: String
 }
 
 input UpdateCommentInput {
@@ -699,7 +700,7 @@ input UpdateLikeInput {
 input UpdatePlatFormRulesInput {
   platFormRulesId: ID!
   rules: String
-  title: String!
+  title: String
 }
 
 input UpdatePostInput {

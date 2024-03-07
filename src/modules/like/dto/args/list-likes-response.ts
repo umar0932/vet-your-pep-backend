@@ -1,4 +1,4 @@
-import { Field, ObjectType } from '@nestjs/graphql'
+import { Field, Int, ObjectType } from '@nestjs/graphql'
 
 import { Likes } from '@app/like/entities'
 
@@ -10,9 +10,9 @@ export class ListLikesResponse {
   @Field(() => Number, { nullable: true })
   totalRows?: number
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true, defaultValue: 0 })
   offset?: number
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   limit?: number
 }

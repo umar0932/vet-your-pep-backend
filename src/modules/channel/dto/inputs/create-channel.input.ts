@@ -20,7 +20,7 @@ export class CreateChannelInput {
   @IsString({ message: 'Channel Rule name must be a string' })
   @IsOptional()
   @MaxLength(500, { message: 'Channel Rule name cannot be longer than 500 characters' })
-  rules: string
+  rules?: string
 
   @Field(() => String, { nullable: true })
   @IsString({ message: 'Channel About name must be a string' })

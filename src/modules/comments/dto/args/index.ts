@@ -1,1 +1,1 @@
-export * from './comments-list-response'
+export * from './list-comments-response'
