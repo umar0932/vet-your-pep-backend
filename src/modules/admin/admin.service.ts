@@ -46,7 +46,7 @@ export class AdminService {
   }
 
   async forgotPassword(email: string): Promise<Admin> {
-    const admin = await this.getAdminById(email)
+    const admin = await this.getAdminByEmail(email)
 
     return admin
   }
@@ -56,6 +56,17 @@ export class AdminService {
     if (!findAdminById) throw new NotFoundException('Invalid Admin user')
 
     return findAdminById
+  }
+
+  async getAdminByEmail(email: string): Promise<Admin> {
+    if (!email) throw new BadRequestException('Admin Email is invalid')
+    const findAdminByEmail = await this.adminRepository.findOne({
+      where: { email, isActive: true }
+    })
+    if (!findAdminByEmail)
+      throw new NotFoundException('Admin with the provided email does not exist')
+
+    return findAdminByEmail
   }
 
   getJwtToken = async ({ sub, email, firstName, lastName, profileImage, type }: JwtDto) => {
@@ -237,15 +248,15 @@ export class AdminService {
   ): Promise<SuccessResponse> {
     const { email } = forgotPasswordInput || {}
 
-    const customer = await this.forgotPassword(email)
+    const admin = await this.forgotPassword(email)
     const code = generateOTP()
 
     try {
       const encodedCode = await encodePassword(code)
-      await this.mailService.sendForgotPasswordEmail(customer.email, customer.firstName, code)
-      await this.adminRepository.update(customer.id, {
+      await this.mailService.sendForgotPasswordEmail(admin.email, admin.firstName, code)
+      await this.adminRepository.update(admin.id, {
         resetPaswordOTP: encodedCode,
-        updatedBy: customer.id,
+        updatedBy: admin.id,
         updatedDate: new Date()
       })
     } catch (e) {
@@ -254,7 +265,7 @@ export class AdminService {
     return { success: true, message: 'Forgot Email send' }
   }
 
-  async resetPasswordCustomer(
+  async resetPassword(
     resetForgotPasswordInput: ResetForgotPasswordInput
   ): Promise<SuccessResponse> {
     const { email, code, password } = resetForgotPasswordInput || {}
@@ -262,7 +273,7 @@ export class AdminService {
 
     if (admin?.resetPaswordOTP) {
       const isValidCode = await this.validatePassword(code, admin.resetPaswordOTP)
-      if (!isValidCode) throw new BadRequestException('Code is Invalid')
+      if (!isValidCode) throw new BadRequestException('OTP Code is Invalid')
     }
 
     try {

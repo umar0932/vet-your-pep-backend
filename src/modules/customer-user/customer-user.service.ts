@@ -596,7 +596,7 @@ export class CustomerUserService {
     return { success: true, message: 'Forgot Email send' }
   }
 
-  async resetPasswordCustomer(
+  async resetPassword(
     resetForgotPasswordInput: ResetForgotPasswordInput
   ): Promise<SuccessResponse> {
     const { email, code, password } = resetForgotPasswordInput || {}

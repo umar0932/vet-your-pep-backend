@@ -85,6 +85,6 @@ export class AdminResolver {
     description: 'Reset Password for Admin'
   })
   async resetPasswordAdmin(@Args('input') resetForgotPasswordInput: ResetForgotPasswordInput) {
-    return this.adminService.resetPasswordCustomer(resetForgotPasswordInput)
+    return this.adminService.resetPassword(resetForgotPasswordInput)
   }
 }

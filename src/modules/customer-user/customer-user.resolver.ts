@@ -159,7 +159,7 @@ export class CustomerUserResolver {
     description: 'Reset Password for Customer'
   })
   async resetPasswordCustomer(@Args('input') resetForgotPasswordInput: ResetForgotPasswordInput) {
-    return this.customerUserService.resetPasswordCustomer(resetForgotPasswordInput)
+    return this.customerUserService.resetPassword(resetForgotPasswordInput)
   }
 
   @Mutation(() => String, {
