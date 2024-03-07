@@ -279,7 +279,7 @@ export class ChannelService {
     updateChannelInput: UpdateChannelInput,
     user: JwtUserPayload
   ): Promise<SuccessResponse> {
-    const { id, moderatorId, title, ...rest } = updateChannelInput
+    const { id, title, ...rest } = updateChannelInput
     const { userId, type } = user || {}
 
     let channel
@@ -287,7 +287,7 @@ export class ChannelService {
       channel = await this.getChannelByModeratorId(id, userId)
     else channel = await this.getChannelById(id)
 
-    if (moderatorId) await this.customerService.getCustomerById(moderatorId)
+    // if (moderatorId) await this.customerService.getCustomerById(moderatorId)
 
     if (title) {
       const channelByName = await this.getChannelsByName(title)
