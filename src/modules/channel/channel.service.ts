@@ -92,10 +92,10 @@ export class ChannelService {
     return findChannels
   }
 
-  async getChannelsByName(title: string): Promise<boolean> {
-    const findChannelsByName = await this.channelsRepository.count({ where: { title } })
-    if (findChannelsByName > 0) return true
-    return false
+  async getChannelsByName(title: string): Promise<Channel | null> {
+    const findChannelsByName = await this.channelsRepository.findOne({ where: { title } })
+
+    return findChannelsByName
   }
 
   async getChannelMemberById(channelId: string, userId: string): Promise<ChannelMember> {
@@ -291,7 +291,8 @@ export class ChannelService {
 
     if (title) {
       const channelByName = await this.getChannelsByName(title)
-      if (channelByName) throw new BadRequestException('Same Channel Name already exists')
+      if (channelByName && channelByName.id !== id)
+        throw new BadRequestException('Same Channel Name already exists')
     }
 
     try {
