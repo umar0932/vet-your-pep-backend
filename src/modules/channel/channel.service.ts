@@ -151,14 +151,6 @@ export class ChannelService {
 
       title && queryBuilder.andWhere('channels.title = :title', { title })
 
-      if (search) {
-        queryBuilder.andWhere(
-          new Brackets(qb => {
-            qb.where('LOWER(channels.title) LIKE LOWER(:search)', { search: `%${search}%` })
-          })
-        )
-      }
-
       queryBuilder
         .leftJoinAndSelect('channels.moderator', 'moderator')
         .leftJoinAndSelect('channels.members', 'channelMember')
@@ -187,6 +179,14 @@ export class ChannelService {
             .andWhere('channels.id NOT IN (' + subQueryBuilder.getQuery() + ')')
             .setParameters(subQueryBuilder.getParameters())
         }
+      }
+
+      if (search) {
+        queryBuilder.andWhere(
+          new Brackets(qb => {
+            qb.where('LOWER(channels.title) LIKE LOWER(:search)', { search: `%${search}%` })
+          })
+        )
       }
 
       const [channels, total] = await queryBuilder.getManyAndCount()

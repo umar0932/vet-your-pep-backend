@@ -608,8 +608,9 @@ export class CustomerUserService {
     }
 
     try {
+      const pwd = await encodePassword(password)
       await this.customerRepository.update(customer.id, {
-        password,
+        password: pwd,
         updatedBy: customer.id,
         updatedDate: new Date()
       })

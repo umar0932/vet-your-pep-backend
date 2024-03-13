@@ -37,9 +37,10 @@ export class CommentService {
   // Resolver Query Methods
 
   async getCommentsWithPagination(
-    { limit, offset, filter }: ListCommentsInput,
+    listCommentsInput: ListCommentsInput,
     user: JwtUserPayload
-  ): Promise<[Comments[], number]> {
+  ): Promise<[Comments[], number, number, number]> {
+    const { limit = 10, offset = 0, filter } = listCommentsInput
     const { search } = filter || {}
     const { userId, type } = user || {}
 
@@ -66,7 +67,7 @@ export class CommentService {
 
       const [channels, total] = await queryBuilder.getManyAndCount()
 
-      return [channels, total]
+      return [channels, total, limit, offset]
     } catch (error) {
       throw new BadRequestException('Failed to find Channel')
     }

@@ -21,13 +21,8 @@ export class CommentResolver {
     @Args('input') args: ListCommentsInput,
     @CurrentUser() user: JwtUserPayload
   ): Promise<ListCommentsResponse> {
-    const { limit, offset, filter } = args
-    const [comments, count] = await this.commentService.getCommentsWithPagination(
-      {
-        limit,
-        offset,
-        filter
-      },
+    const [comments, count, limit, offset] = await this.commentService.getCommentsWithPagination(
+      args,
       user
     )
     return { results: comments, totalRows: count, limit, offset }
