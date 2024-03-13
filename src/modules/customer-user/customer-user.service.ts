@@ -407,7 +407,14 @@ export class CustomerUserService {
       const randomPassword = await randomStringGenerator()
       const pwd = await encodePassword(randomPassword)
       const customer: Partial<Customer> = await this.saveProviderAndCustomer(
-        { email, firstName, lastName, password: pwd, stripeCustomerId: stripeCustomer.id },
+        {
+          email,
+          firstName,
+          lastName,
+          password: pwd,
+          stripeCustomerId: stripeCustomer.id,
+          isActive: true
+        },
         { provider, socialId }
       )
 
