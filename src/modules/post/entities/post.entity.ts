@@ -44,7 +44,8 @@ export class Post extends CustomBaseEntity {
 
   @Field(() => Customer)
   @ManyToOne(() => Customer, customer => customer.posts, {
-    onUpdate: 'CASCADE'
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
   })
   @JoinColumn({ name: 'customer_id' })
   customer: Customer

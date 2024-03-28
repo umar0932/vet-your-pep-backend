@@ -7,7 +7,6 @@ import Mail from 'nodemailer/lib/mailer'
 import { Configuration } from '@config/configuration.interface'
 
 import { SendEmailInput } from './dto/inputs/send-email.input'
-// import SMTPTransport from 'nodemailer/lib/smtp-transport'
 
 @Injectable()
 export class MailService {
@@ -34,7 +33,7 @@ export class MailService {
     const transport = this.mailTransport()
 
     const options: Mail.Options = {
-      from: this.config.transport?.from,
+      from: this.config.from,
       to: recipients,
       subject,
       html

@@ -38,7 +38,7 @@ export default () => ({
   },
   email: {
     name: process.env.EMAIL_NAME ?? 'Vet Your Pep',
-    from: process.env.EMAIL_FROM ?? '',
+    from: process.env.EMAIL_FROM ?? 'vetyourpep <support@vetyourpep.com>',
     retries: int(process.env.EMAIL_FAIL_RETRIES, 3),
     transport: {
       host: process.env.EMAIL_HOST ?? '',
